@@ -114,6 +114,85 @@
 
 ---
 
+## COMPLIANCE SERVICES SUITE
+
+**ZeroDrift AI Compliance Firewall** - Feature-complete implementation for financial compliance.
+
+### Compliance Microservices (Ports 4180-4185)
+
+| Service | Port | Description |
+|---------|------|-------------|
+| [communication-compliance-service](communication-compliance-service/) | 4180 | Pre-send validation of emails, LinkedIn posts, documents |
+| [policy-engine-service](policy-engine-service/) | 4181 | NLP-based policy document parsing and rule extraction |
+| [enforcement-gateway](enforcement-gateway/) | 4182 | Real-time blocking, quarantine queue, advisory modes |
+| [llm-compliance-service](llm-compliance-service/) | 4183 | AI-generated content validation, PII detection, tone analysis |
+| [agent-governance-service](agent-governance-service/) | 4184 | AI agent permission control, boundaries, approval workflow |
+| [audit-trail-service](audit-trail-service/) | 4185 | Complete compliance logging, reporting, export |
+
+### Regulatory Coverage
+
+| Framework | Rules |
+|-----------|-------|
+| **SEC** | Rule 10b-5 (insider trading), Rule 17a-4 (records), Reg FD, Rule 207 |
+| **FINRA** | Rules 3110, 3120, 2210, 4511, 2090 (supervision, communications, KYC) |
+| **RBI** | KYC, AML/CFT, Digital Lending, NBFC guidelines |
+| **Company Policy** | Data Privacy (PII), Communications, Conflicts of Interest, InfoSec |
+
+### SDK & Tools
+
+| Package | Description |
+|---------|-------------|
+| [compliance-sdk](compliance-sdk/) | Unified TypeScript/JS SDK with React hooks and Express middleware |
+| [regulatory-rules](regulatory-rules/) | Machine-readable compliance rule definitions |
+
+### Quick Start
+
+```bash
+# Install SDK
+npm install @trustos/compliance-sdk
+
+# Run services
+cd communication-compliance-service && npm start  # Port 4180
+cd policy-engine-service && npm start              # Port 4181
+cd enforcement-gateway && npm start                # Port 4182
+cd llm-compliance-service && npm start            # Port 4183
+cd agent-governance-service && npm start          # Port 4184
+cd audit-trail-service && npm start               # Port 4185
+```
+
+### Example Usage
+
+```typescript
+import { ComplianceClient } from '@trustos/compliance-sdk';
+
+const client = new ComplianceClient({
+  communicationCompliance: 'http://localhost:4180',
+  enforcementGateway: 'http://localhost:4182',
+  auditTrail: 'http://localhost:4185',
+});
+
+// Pre-send validation
+const result = await client.communication.validateEmail({
+  to: 'client@example.com',
+  subject: 'Q3 Financial Summary',
+  body: 'Based on our analysis...',
+});
+
+if (!result.canSend) {
+  console.log('Blocked:', result.violations);
+}
+
+// Audit log
+await client.audit.log({
+  eventType: 'MESSAGE_SENT',
+  userId: 'user123',
+  action: 'email_sent',
+  outcome: result.canSend ? 'SUCCESS' : 'BLOCKED',
+});
+```
+
+---
+
 ## BPO SERVICES
 
 BPO services are sold via **RABTUL SaaS** (sub-division of RABTUL Technologies):
