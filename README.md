@@ -33,6 +33,7 @@
 ## BUZZLOCAL — Hyperlocal Social Platform
 
 **Purpose:** Hyperlocal community engagement and social networking
+**Tagline:** "Live Pulse of Your City" / "City Operating System"
 
 ### Architecture
 
@@ -44,18 +45,40 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### BuzzLocal Services
+### BuzzLocal Products (2)
+
+| Product | Location | Description |
+|---------|----------|-------------|
+| **buzzlocal-app** | buzzlocal-app/ | React Native mobile app - City OS |
+| **buzzlocal-services** | buzzlocal-services/ | 9 Backend microservices |
+
+#### buzzlocal-app (Mobile App - City OS)
+- **Tech:** React Native (Expo SDK 53), TypeScript, Expo Router
+- **Screens:** 69 screens
+- **Layers:** Home, Ask Buzz, Society, REZ Safe
+- **Features:** AI-powered local Q&A, Safety infrastructure, Society OS
+
+#### buzzlocal-services (Backend)
+| Service | Port | Purpose |
+|---------|------|---------|
+| buzzlocal-feed-service | 4000 | Posts, feed, AI cards, coin rewards |
+| buzzlocal-vibe-service | 4003 | Vibe areas, check-ins, crowd heatmap |
+| buzzlocal-community-service | 4004 | Communities, group posts |
+| z-events-service | 4008 | Events, ticketing, QR check-in |
+| buzzlocal-intelligence-service | 4010 | AI intelligence |
+| buzzlocal-notification-service | 4011 | Push notifications |
+| buzzlocal-realtime-service | 4012 | WebSocket real-time |
+| buzzlocal-payment-service | 4013 | Payments |
+| buzzlocal-weather-service | 4014 | Weather data |
+
+### Legacy Services (from Axom)
 
 | Service | Description |
 |---------|-------------|
 | buzzlocal-agency-service | Agency management |
-| buzzlocal-community-service | Community features |
-| buzzlocal-creator-service | Creator tools |
-| buzzlocal-feed-service | Feed management |
 | buzzlocal-intelligence-hub | Intelligence hub |
 | buzzlocal-merchant-dashboard | Merchant tools |
 | buzzlocal-movement-service | Movement tracking |
-| buzzlocal-payment-service | Payments |
 | buzzlocal-safety-service | Safety features |
 | buzzlocal-society-service | Society management |
 | buzzlocal-trust-service | Trust scores |
