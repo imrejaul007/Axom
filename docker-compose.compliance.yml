@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  # Communication Compliance Service - Port 4180
+  communication-compliance:
+    build: ./communication-compliance-service
+    ports:
+      - "4180:4180"
+    environment:
+      - NODE_ENV=production
+      - PORT=4180
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4180/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Policy Engine Service - Port 4181
+  policy-engine:
+    build: ./policy-engine-service
+    ports:
+      - "4181:4181"
+    environment:
+      - NODE_ENV=production
+      - PORT=4181
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4181/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enforcement Gateway - Port 4182
+  enforcement-gateway:
+    build: ./enforcement-gateway
+    ports:
+      - "4182:4182"
+    environment:
+      - NODE_ENV=production
+      - PORT=4182
+      - REDIS_URL=redis://redis:6379
+      - COMMUNICATION_SERVICE_URL=http://communication-compliance:4180
+      - POLICY_SERVICE_URL=http://policy-engine:4181
+      - LLM_SERVICE_URL=http://llm-compliance:4183
+      - AGENT_SERVICE_URL=http://agent-governance:4184
+    depends_on:
+      - redis
+      - communication-compliance
+      - policy-engine
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4182/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # LLM Compliance Service - Port 4183
+  llm-compliance:
+    build: ./llm-compliance-service
+    ports:
+      - "4183:4183"
+    environment:
+      - NODE_ENV=production
+      - PORT=4183
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4183/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent Governance Service - Port 4184
+  agent-governance:
+    build: ./agent-governance-service
+    ports:
+      - "4184:4184"
+    environment:
+      - NODE_ENV=production
+      - PORT=4184
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4184/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Audit Trail Service - Port 4185
+  audit-trail:
+    build: ./audit-trail-service
+    ports:
+      - "4185:4185"
+    environment:
+      - NODE_ENV=production
+      - PORT=4185
+      - MONGODB_URL=mongodb://mongo:27017/audit
+    depends_on:
+      - mongo
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4185/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - compliance-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # MongoDB for audit logs
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    networks:
+      - compliance-network
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  compliance-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  mongo-data:
