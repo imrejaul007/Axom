@@ -1,0 +1,1 @@
+{"version":3,"file":"webhookVerify.d.ts","sourceRoot":"","sources":["../../src/middleware/webhookVerify.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAGjD,OAAO,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAElD,wBAAgB,gBAAgB,CAAC,GAAG,EAAE,cAAc,EAAE,GAAG,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY,kDA4BtF"}
