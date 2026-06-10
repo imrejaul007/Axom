@@ -1,0 +1,30 @@
+{
+  "name": "axom",
+  "version": "1.0.0",
+  "description": "Social + Entertainment Platform - BuzzLocal, Rendezvous",
+  "private": true,
+  "workspaces": [
+    "buzzlocal",
+    "rendez",
+    "buzzlocal-*",
+    "rez-*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "start": "npm run start --workspaces --if-present"
+  },
+  "keywords": [
+    "social",
+    "entertainment",
+    "buzzlocal",
+    "community",
+    "rez"
+  ],
+  "author": "AXOM",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
