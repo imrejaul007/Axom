@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: buzzlocal-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - buzzlocal-network
+
+  # Redis (for caching/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: buzzlocal-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - buzzlocal-network
+
+  # Feed Service
+  feed-service:
+    build:
+      context: ./buzzlocal-feed-service
+      dockerfile: Dockerfile
+    container_name: buzzlocal-feed
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongodb:27017/buzzlocal
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+      - WALLET_SERVICE_URL=http://wallet-service:4002
+      - MIND_SERVICE_URL=${MIND_SERVICE_URL}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - buzzlocal-network
+
+  # Vibe Service
+  vibe-service:
+    build:
+      context: ./buzzlocal-vibe-service
+      dockerfile: Dockerfile
+    container_name: buzzlocal-vibe
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    environment:
+      - NODE_ENV=production
+      - PORT=4003
+      - MONGODB_URI=mongodb://mongodb:27017/buzzlocal_vibe
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+      - WALLET_SERVICE_URL=http://wallet-service:4002
+      - MIND_SERVICE_URL=${MIND_SERVICE_URL}
+    depends_on:
+      - mongodb
+    networks:
+      - buzzlocal-network
+
+  # Community Service
+  community-service:
+    build:
+      context: ./buzzlocal-community-service
+      dockerfile: Dockerfile
+    container_name: buzzlocal-community
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    environment:
+      - NODE_ENV=production
+      - PORT=4004
+      - MONGODB_URI=mongodb://mongodb:27017/buzzlocal_community
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+      - WALLET_SERVICE_URL=http://wallet-service:4002
+      - MIND_SERVICE_URL=${MIND_SERVICE_URL}
+    depends_on:
+      - mongodb
+    networks:
+      - buzzlocal-network
+
+  # Events Service
+  events-service:
+    build:
+      context: ./z-events-service
+      dockerfile: Dockerfile
+    container_name: buzzlocal-events
+    restart: unless-stopped
+    ports:
+      - "4008:4008"
+    environment:
+      - NODE_ENV=production
+      - PORT=4008
+      - MONGODB_URI=mongodb://mongodb:27017/z_events
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+      - WALLET_SERVICE_URL=http://wallet-service:4002
+      - MIND_SERVICE_URL=${MIND_SERVICE_URL}
+      - QR_BASE_URL=${QR_BASE_URL:-https://rez.app}
+    depends_on:
+      - mongodb
+    networks:
+      - buzzlocal-network
+
+networks:
+  buzzlocal-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:

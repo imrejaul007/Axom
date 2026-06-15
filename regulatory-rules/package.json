@@ -1,0 +1,30 @@
+{
+  "name": "@trustos/regulatory-rules",
+  "version": "1.0.0",
+  "description": "Machine-readable regulatory compliance rules for SEC, FINRA, RBI, and Company Policies",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "compliance",
+    "regulatory",
+    "sec",
+    "finra",
+    "rbi",
+    "rules"
+  ],
+  "author": "TrustOS",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

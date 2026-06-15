@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - mongodb
+      - redis
+    restart: unless-stopped
+    networks:
+      - rtnm-network
+
+  mongodb:
+    image: mongo:6-alpine
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - rtnm-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rtnm-network
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  rtnm-network:
+    driver: bridge

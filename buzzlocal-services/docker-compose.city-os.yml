@@ -1,0 +1,338 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # CITY OS CORE SERVICES (4015-4019)
+  # ============================================
+
+  buzzlocal-ask-service:
+    build: ./buzzlocal-ask-service
+    container_name: buzzlocal-ask
+    ports:
+      - "4015:4015"
+    environment:
+      - PORT=4015
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-ask
+      - NODE_ENV=development
+      - REZ_INTENT_PREDICTOR_URL=http://intent-predictor:4018
+      - REZ_WALLET_SERVICE_URL=http://rez-wallet-service:4004
+      - REZ_GAMIFICATION_SERVICE_URL=http://rez-gamification-service:4041
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-trust-service:
+    build: ./buzzlocal-trust-service
+    container_name: buzzlocal-trust
+    ports:
+      - "4016:4016"
+    environment:
+      - PORT=4016
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-trust
+      - NODE_ENV=development
+      - REZ_AUTH_SERVICE_URL=http://rez-auth-service:4002
+      - REZ_WALLET_SERVICE_URL=http://rez-wallet-service:4004
+      - REZ_GAMIFICATION_SERVICE_URL=http://rez-gamification-service:4041
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-safety-service:
+    build: ./buzzlocal-safety-service
+    container_name: buzzlocal-safe
+    ports:
+      - "4017:4017"
+    environment:
+      - PORT=4017
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-safety
+      - NODE_ENV=development
+      - REZ_AUTH_SERVICE_URL=http://rez-auth-service:4002
+      - REZ_NOTIFICATIONS_SERVICE_URL=http://rez-notifications-service:4011
+      - REZ_CARE_SERVICE_URL=http://REZ-care-service:4055
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-agency-service:
+    build: ./buzzlocal-agency-service
+    container_name: buzzlocal-agency
+    ports:
+      - "4018:4018"
+    environment:
+      - PORT=4018
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-agency
+      - NODE_ENV=development
+      - BBMP_WEBHOOK_SECRET=${BBMP_WEBHOOK_SECRET}
+      - METRO_WEBHOOK_SECRET=${METRO_WEBHOOK_SECRET}
+      - REZ_NOTIFICATIONS_SERVICE_URL=http://rez-notifications-service:4011
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-society-service:
+    build: ./buzzlocal-society-service
+    container_name: buzzlocal-society
+    ports:
+      - "4019:4019"
+    environment:
+      - PORT=4019
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-society
+      - NODE_ENV=development
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  # ============================================
+  # CITY OS EXTENDED SERVICES (4020-4024)
+  # ============================================
+
+  buzzlocal-marketplace-service:
+    build: ./buzzlocal-marketplace-service
+    container_name: buzzlocal-marketplace
+    ports:
+      - "4020:4020"
+    environment:
+      - PORT=4020
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-marketplace
+      - NODE_ENV=development
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-crisis-service:
+    build: ./buzzlocal-crisis-service
+    container_name: buzzlocal-crisis
+    ports:
+      - "4021:4021"
+    environment:
+      - PORT=4021
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-crisis
+      - NODE_ENV=development
+      - REZ_NOTIFICATIONS_SERVICE_URL=http://rez-notifications-service:4011
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-density-service:
+    build: ./buzzlocal-density-service
+    container_name: buzzlocal-density
+    ports:
+      - "4022:4022"
+    environment:
+      - PORT=4022
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-density
+      - NODE_ENV=development
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-merchant-offer-service:
+    build: ./buzzlocal-merchant-offer-service
+    container_name: buzzlocal-offers
+    ports:
+      - "4023:4023"
+    environment:
+      - PORT=4023
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-offers
+      - NODE_ENV=development
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-services-service:
+    build: ./buzzlocal-services-service
+    container_name: buzzlocal-services
+    ports:
+      - "4024:4024"
+    environment:
+      - PORT=4024
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-services
+      - NODE_ENV=development
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  # ============================================
+  # EXISTING BUZZLOCAL SERVICES (4000-4014)
+  # ============================================
+
+  buzzlocal-feed-service:
+    build: ./buzzlocal-feed-service
+    container_name: buzzlocal-feed
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-feed
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-vibe-service:
+    build: ./buzzlocal-vibe-service
+    container_name: buzzlocal-vibe
+    ports:
+      - "4003:4003"
+    environment:
+      - PORT=4003
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-vibe
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-community-service:
+    build: ./buzzlocal-community-service
+    container_name: buzzlocal-community
+    ports:
+      - "4004:4004"
+    environment:
+      - PORT=4004
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-community
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  z-events-service:
+    build: ./z-events-service
+    container_name: buzzlocal-events
+    ports:
+      - "4008:4008"
+    environment:
+      - PORT=4008
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-events
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-intelligence-service:
+    build: ./buzzlocal-intelligence-service
+    container_name: buzzlocal-intelligence
+    ports:
+      - "4010:4010"
+    environment:
+      - PORT=4010
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-intelligence
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-notification-service:
+    build: ./buzzlocal-notification-service
+    container_name: buzzlocal-notifications
+    ports:
+      - "4011:4011"
+    environment:
+      - PORT=4011
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-notifications
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-realtime-service:
+    build: ./buzzlocal-realtime-service
+    container_name: buzzlocal-realtime
+    ports:
+      - "4012:4012"
+    environment:
+      - PORT=4012
+      - NODE_ENV=development
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  buzzlocal-weather-service:
+    build: ./buzzlocal-weather-service
+    container_name: buzzlocal-weather
+    ports:
+      - "4014:4014"
+    environment:
+      - PORT=4014
+      - MONGODB_URI=mongodb://mongo:27017/buzzlocal-weather
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  # ============================================
+  # DEPENDENCIES
+  # ============================================
+
+  mongo:
+    image: mongo:7
+    container_name: buzzlocal-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - buzzlocal-mongo-data:/data/db
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: buzzlocal-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - buzzlocal-redis-data:/data
+    networks:
+      - buzzlocal-network
+    restart: unless-stopped
+
+networks:
+  buzzlocal-network:
+    driver: bridge
+
+volumes:
+  buzzlocal-mongo-data:
+  buzzlocal-redis-data:

@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "TrustOS Shield",
+    "slug": "trust-os-shield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E3A5F"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rez.trustos.shield",
+      "infoPlist": {
+        "NSContactsUsageDescription": "TrustOS Shield needs access to contacts to identify callers.",
+        "NSPhoneUsageDescription": "TrustOS Shield monitors calls for scam detection."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E3A5F"
+      },
+      "package": "com.rez.trustos.shield",
+      "permissions": [
+        "READ_CONTACTS",
+        "READ_PHONE_STATE",
+        "READ_CALL_LOG",
+        "ANSWER_PHONE_CALLS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "TrustOS Shield needs access to your contacts to identify and protect you from scam callers."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "trust-os-shield"
+      }
+    }
+  }
+}

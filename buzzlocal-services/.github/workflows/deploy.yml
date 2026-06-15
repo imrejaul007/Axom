@@ -1,0 +1,77 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      matrix:
+        service:
+          - buzzlocal-feed-service
+          - buzzlocal-vibe-service
+          - buzzlocal-community-service
+          - z-events-service
+          - buzzlocal-intelligence-service
+          - buzzlocal-notification-service
+          - buzzlocal-realtime-service
+          - buzzlocal-payment-service
+          - buzzlocal-weather-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd ${{ matrix.service }}
+          npm ci
+
+      - name: Build
+        run: |
+          cd ${{ matrix.service }}
+          npm run build
+
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST https://api.render.com/v1/blueprints \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "service": { "name": "${{ matrix.service }}" },
+              "envVars": [
+                { "key": "NODE_ENV", "value": "production" }
+              ]
+            }'
+
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+    strategy:
+      matrix:
+        service:
+          - buzzlocal-feed-service
+          - buzzlocal-vibe-service
+          - buzzlocal-community-service
+          - z-events-service
+          - buzzlocal-intelligence-service
+          - buzzlocal-notification-service
+          - buzzlocal-realtime-service
+          - buzzlocal-payment-service
+          - buzzlocal-weather-service
+    steps:
+      - name: Check health
+        run: |
+          sleep 10
+          curl -f https://${{ matrix.service }}.onrender.com/health || exit 1
