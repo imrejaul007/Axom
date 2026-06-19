@@ -3,7 +3,7 @@
  * Comprehensive regulatory compliance rules for broker-dealer operations
  */
 
-import { ComplianceRule, RuleSet, createCustomRule } from '../types';
+import { ComplianceRule, RuleSet, createCustomRule } from '../types.js';
 
 /**
  * FINRA Rule 3110: Supervision
@@ -195,7 +195,7 @@ export const communicationRules: ComplianceRule[] = [
  * FINRA Rule 4511: Books and Records
  * Requirements for recordkeeping
  */
-export const booksAndRecordsRules: ComplianceRule[] = [
+export const finraBooksAndRecordsRules: ComplianceRule[] = [
   createCustomRule({
     id: 'FINRA-4511-001',
     name: 'Incomplete Recordkeeping',
@@ -239,7 +239,7 @@ export const booksAndRecordsRules: ComplianceRule[] = [
  * FINRA Rule 2090: Know Your Customer
  * Customer identification and suitability requirements
  */
-export const kycRules: ComplianceRule[] = [
+export const finraKycRules: ComplianceRule[] = [
   createCustomRule({
     id: 'FINRA-2090-001',
     name: 'Inadequate Customer Identification',
@@ -317,8 +317,8 @@ export const FINRARules: RuleSet = {
     ...supervisionRules,
     ...supervisorySystemRules,
     ...communicationRules,
-    ...booksAndRecordsRules,
-    ...kycRules,
+    ...finraBooksAndRecordsRules,
+    ...finraKycRules,
     ...businessContinuityRules,
   ],
 };

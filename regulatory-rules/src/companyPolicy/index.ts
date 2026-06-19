@@ -3,7 +3,7 @@
  * Internal company-specific compliance rules
  */
 
-import { ComplianceRule, RuleSet, createCustomRule } from '../types';
+import { ComplianceRule, RuleSet, createCustomRule } from '../types.js';
 
 /**
  * Data Privacy and Protection Rules
@@ -26,7 +26,7 @@ export const dataPrivacyRules: ComplianceRule[] = [
       'health(?:-|\\s)record[^.!?]*(?:shared|disclosed|emailed)[^.!?]*(?:without|without\\s+)',
       'medical(?:-|\\s)record[^.!?]*(?:shared|disclosed|emailed)[^.!?]*(?:without|without\\s+)',
       'diagnosis[^.!?]*(?:shared|disclosed)[^.!?]*(?:without|without\\s+)(?:patient\\s+)?consent',
-      'driver'?s?\\s+licen(?:se|ses)\\s+(?:number|no\\.?)[^.!?]*(?:in\\s+)?(?:plain|clear|text|unredacted)',
+      "driver'?s?\\s+licen(?:se|ses)\\s+(?:number|no\\.?)[^.!?]*(?:in\\s+)?(?:plain|clear|text|unredacted)",
       'passport[^.!?]*(?:number|no\\.?)[^.!?]*(?:in\\s+)?(?:plain|clear|text|unredacted)',
     ],
     action: 'block',

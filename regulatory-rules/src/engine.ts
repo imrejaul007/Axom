@@ -11,7 +11,7 @@ import {
   Violation,
   Warning,
   Severity,
-} from './types';
+} from './types.js';
 
 /**
  * Severity scoring weights
@@ -203,7 +203,12 @@ export class RuleEngine {
     items: { content: string; context?: ValidationContext }[],
     rules: ComplianceRule[]
   ): ValidationResult[] {
-    return items.map(item => this.validateContextAware(item.content, rules, item.context || {}));
+    return items.map(item => {
+      const ctx: ValidationContext = item.context
+        ? item.context
+        : { content: item.content };
+      return this.validateContextAware(item.content, rules, ctx);
+    });
   }
 
   /**

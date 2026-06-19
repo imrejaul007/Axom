@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test dist/index.test.js",
+    "build:test": "tsc -p tsconfig.test.json",
+    "test": "tsc && tsc -p tsconfig.test.json && node --test dist-test/index.test.js",
     "lint": "eslint src --ext .ts",
     "prepublish": "npm run build"
   },
@@ -22,7 +23,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0"

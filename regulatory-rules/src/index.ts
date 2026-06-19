@@ -10,9 +10,9 @@
  * never defined in this module.
  */
 
-export * from './sec';
-export * from './finra';
-export * from './rbi';
-export * from './companyPolicy';
-export * from './types';
-export * from './engine';
+export * from './sec/index.js';
+export * from './finra/index.js';
+export * from './rbi/index.js';
+export * from './companyPolicy/index.js';
+export * from './types.js';
+export * from './engine.js';

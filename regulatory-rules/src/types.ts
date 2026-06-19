@@ -99,15 +99,11 @@ export function createCustomRule(
   partial: Partial<ComplianceRule> & Pick<ComplianceRule, 'id' | 'name' | 'regulation' | 'patterns' | 'action'>
 ): ComplianceRule {
   return {
-    id: partial.id,
-    name: partial.name,
+    ...partial,
     regulation: partial.regulation || 'COMPANY_POLICY',
     category: partial.category || 'general',
     severity: partial.severity || 'medium',
-    patterns: partial.patterns,
-    action: partial.action,
     enabled: partial.enabled ?? true,
     description: partial.description || '',
-    ...partial,
   };
 }

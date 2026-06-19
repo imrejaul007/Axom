@@ -42,3 +42,5 @@ Thumbs.db
 .cache/
 .tmp/
 .eslintcache
+regulatory-rules/dist-test/
+regulatory-rules/package-lock.json

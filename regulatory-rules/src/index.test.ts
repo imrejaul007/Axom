@@ -5,21 +5,23 @@
  * Validates the public API of the regulatory-rules library. Uses Node's
  * built-in test runner (node:test) so no extra deps are required.
  *
- * Run with: `node --test --import tsx src/index.test.ts`
- * (or compile first and run against dist/)
+ * Run with: `npm test` (which builds first), or for direct execution:
+ *   `npm run build && node --test dist-test/index.test.js`
  */
 
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-// Import the compiled output if it exists, otherwise fail with a clear
-// message instructing the user to build first.
+// This file is compiled to CommonJS (see tsconfig.test.json), so the
+// `require` function is provided by Node's CJS module wrapper.
+declare const require: NodeRequire;
+
 let lib: any;
 try {
-  lib = await import('../dist/index.js');
+  lib = require('../dist/index.js');
 } catch (err) {
   console.error(
-    '\n[regulatory-rules test] dist/ not found. Run `npm run build` first.\n'
+    '\n[regulatory-rules test] dist/ not found or not loadable. Run `npm run build` first.\n'
   );
   throw err;
 }

@@ -3,7 +3,7 @@
  * Comprehensive regulatory compliance rules for US securities law
  */
 
-import { ComplianceRule, RuleSet, createCustomRule } from '../types';
+import { ComplianceRule, RuleSet, createCustomRule } from '../types.js';
 
 /**
  * SEC Rule 10b-5: Insider Trading Prevention

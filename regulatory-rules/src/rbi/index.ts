@@ -3,7 +3,7 @@
  * Comprehensive regulatory compliance rules for Indian financial services
  */
 
-import { ComplianceRule, RuleSet, createCustomRule } from '../types';
+import { ComplianceRule, RuleSet, createCustomRule } from '../types.js';
 
 /**
  * KYC (Know Your Customer) Requirements
