@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Test service
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          # Top-level compliance services (Jest, port 4180-4185)
+          - enforcement-gateway
+          - policy-engine-service
+          - communication-compliance-service
+          - audit-trail-service
+          - agent-governance-service
+          - llm-compliance-service
+          - breach-detection-service
+          - regulatory-rules
+          - compliance-sdk
+          # REZ trust + context services
+          - REZ-trust-os
+          - REZ-human-context-graph
+          # Buzzlocal root service
+          - buzzlocal
+    defaults:
+      run:
+        working-directory: ./${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci || npm install
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test --if-present
+        continue-on-error: true

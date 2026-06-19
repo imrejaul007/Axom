@@ -1,9 +1,19 @@
 /**
  * Compliance Services Integration Tests
- * Tests for the TrustOS Compliance SDK
+ *
+ * These tests run against live TrustOS Compliance services on localhost:4180-4185.
+ * By default they are SKIPPED in CI / unit-test mode. To run them, start the
+ * compliance services locally and execute:
+ *
+ *   COMPLIANCE_INTEGRATION=1 npm test
+ *
+ * For offline unit tests, see: tests/unit.test.ts
  */
 
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+
+const RUN_INTEGRATION = process.env.COMPLIANCE_INTEGRATION === '1';
+const itIntegration = RUN_INTEGRATION ? test : test.skip;
 
 const BASE_URL = process.env.COMPLIANCE_BASE_URL || 'http://localhost';
 
@@ -28,13 +38,13 @@ async function apiRequest(baseUrl: string, path: string, method = 'GET', body?: 
 }
 
 describe('Communication Compliance Service (4180)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.communication, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('validate email passes for compliant content', async () => {
+  itIntegration('validate email passes for compliant content', async () => {
     const { status, data } = await apiRequest(services.communication, '/api/validate/email', 'POST', {
       to: 'client@example.com',
       subject: 'Weekly Update',
@@ -45,7 +55,7 @@ describe('Communication Compliance Service (4180)', () => {
     expect(data.passed).toBe(true);
   });
 
-  test('validate email blocks insider trading patterns', async () => {
+  itIntegration('validate email blocks insider trading patterns', async () => {
     const { status, data } = await apiRequest(services.communication, '/api/validate/email', 'POST', {
       to: 'friend@email.com',
       subject: 'Stock tip',
@@ -56,7 +66,7 @@ describe('Communication Compliance Service (4180)', () => {
     expect(data.violations.length).toBeGreaterThan(0);
   });
 
-  test('get rules returns regulatory rules', async () => {
+  itIntegration('get rules returns regulatory rules', async () => {
     const { status, data } = await apiRequest(services.communication, '/api/rules');
     expect(status).toBe(200);
     expect(data.rules.length).toBeGreaterThan(0);
@@ -64,13 +74,13 @@ describe('Communication Compliance Service (4180)', () => {
 });
 
 describe('Policy Engine Service (4181)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.policy, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('parse policy extracts rules', async () => {
+  itIntegration('parse policy extracts rules', async () => {
     const policyText = `
       SECTION: COMMUNICATIONS COMPLIANCE
 
@@ -93,7 +103,7 @@ describe('Policy Engine Service (4181)', () => {
     expect(data.rules.length).toBeGreaterThan(0);
   });
 
-  test('get policies returns list', async () => {
+  itIntegration('get policies returns list', async () => {
     const { status, data } = await apiRequest(services.policy, '/api/policies');
     expect(status).toBe(200);
     expect(Array.isArray(data.policies)).toBe(true);
@@ -101,13 +111,13 @@ describe('Policy Engine Service (4181)', () => {
 });
 
 describe('Enforcement Gateway (4182)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.enforcement, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('pre-send validation returns decision', async () => {
+  itIntegration('pre-send validation returns decision', async () => {
     const { status, data } = await apiRequest(services.enforcement, '/api/enforce/pre-send', 'POST', {
       channel: 'email',
       content: { body: 'Test message' },
@@ -118,13 +128,13 @@ describe('Enforcement Gateway (4182)', () => {
     expect(data.mode).toBeDefined();
   });
 
-  test('get mode returns current mode', async () => {
+  itIntegration('get mode returns current mode', async () => {
     const { status, data } = await apiRequest(services.enforcement, '/api/enforce/mode');
     expect(status).toBe(200);
     expect(['blocking', 'advisory', 'audit']).toContain(data.mode);
   });
 
-  test('set mode updates enforcement mode', async () => {
+  itIntegration('set mode updates enforcement mode', async () => {
     const { status, data } = await apiRequest(services.enforcement, '/api/enforce/mode', 'POST', {
       mode: 'advisory',
     });
@@ -134,13 +144,13 @@ describe('Enforcement Gateway (4182)', () => {
 });
 
 describe('LLM Compliance Service (4183)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.llm, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('validate LLM content', async () => {
+  itIntegration('validate LLM content', async () => {
     const { status, data } = await apiRequest(services.llm, '/api/llm/validate', 'POST', {
       content: 'Based on market analysis, your portfolio should perform well.',
       context: { channel: 'email', purpose: 'customer_communication' },
@@ -150,7 +160,7 @@ describe('LLM Compliance Service (4183)', () => {
     expect(data.riskScore).toBeDefined();
   });
 
-  test('PII detection works', async () => {
+  itIntegration('PII detection works', async () => {
     const { status, data } = await apiRequest(services.llm, '/api/llm/pii', 'POST', {
       content: 'Contact John at 123-45-6789 or john@email.com',
     });
@@ -160,13 +170,13 @@ describe('LLM Compliance Service (4183)', () => {
 });
 
 describe('Agent Governance Service (4184)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.agent, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('register and check agent permission', async () => {
+  itIntegration('register and check agent permission', async () => {
     // Register agent
     const { status: regStatus } = await apiRequest(services.agent, '/api/agents', 'POST', {
       id: 'test-agent-001',
@@ -185,7 +195,7 @@ describe('Agent Governance Service (4184)', () => {
     expect(data.allowed).toBeDefined();
   });
 
-  test('get approval queue', async () => {
+  itIntegration('get approval queue', async () => {
     const { status, data } = await apiRequest(services.agent, '/api/approvals');
     expect(status).toBe(200);
     expect(Array.isArray(data.approvals)).toBe(true);
@@ -193,13 +203,13 @@ describe('Agent Governance Service (4184)', () => {
 });
 
 describe('Audit Trail Service (4185)', () => {
-  test('health check returns healthy', async () => {
+  itIntegration('health check returns healthy', async () => {
     const { status, data } = await apiRequest(services.audit, '/health');
     expect(status).toBe(200);
     expect(data.status).toBe('healthy');
   });
 
-  test('log audit event', async () => {
+  itIntegration('log audit event', async () => {
     const { status, data } = await apiRequest(services.audit, '/api/audit/log', 'POST', {
       eventType: 'MESSAGE_SENT',
       userId: 'user123',
@@ -213,7 +223,7 @@ describe('Audit Trail Service (4185)', () => {
     expect(data.timestamp).toBeDefined();
   });
 
-  test('query audit logs', async () => {
+  itIntegration('query audit logs', async () => {
     const { status, data } = await apiRequest(services.audit, '/api/audit/query', 'POST', {
       limit: 10,
     });
@@ -222,7 +232,7 @@ describe('Audit Trail Service (4185)', () => {
     expect(data.total).toBeDefined();
   });
 
-  test('get compliance summary', async () => {
+  itIntegration('get compliance summary', async () => {
     const { status, data } = await apiRequest(services.audit, '/api/audit/summary', 'POST', {
       period: '7d',
       groupBy: 'day',
@@ -233,7 +243,7 @@ describe('Audit Trail Service (4185)', () => {
 });
 
 describe('End-to-End Compliance Flow', () => {
-  test('complete email compliance workflow', async () => {
+  itIntegration('complete email compliance workflow', async () => {
     // 1. Validate email
     const validateResult = await apiRequest(services.communication, '/api/validate/email', 'POST', {
       to: 'client@example.com',
@@ -256,7 +266,7 @@ describe('End-to-End Compliance Flow', () => {
     expect(logResult.status).toBe(200);
   });
 
-  test('agent action with governance', async () => {
+  itIntegration('agent action with governance', async () => {
     // 1. Register agent
     await apiRequest(services.agent, '/api/agents', 'POST', {
       id: 'e2e-test-agent',

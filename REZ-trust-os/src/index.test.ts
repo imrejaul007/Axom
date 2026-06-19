@@ -7,17 +7,16 @@ import { TrustScoreService } from './services/trustScoreService.js';
 import { IdentityService } from './services/identityService.js';
 import { FraudService } from './services/fraudService.js';
 import { ReputationService } from './services/reputationService.js';
-import { TrustTier, IdentityStatus, KycLevel, FraudRisk, ReputationLevel } from './types.js';
+import { TrustTier, IdentityStatus, KycLevel, FraudRisk, FraudFlag, ReputationLevel } from './types.js';
 
 describe('TrustScoreService', () => {
-  const userId = 'test-user-trust';
-
-  beforeEach(() => {
-    TrustScoreService.initialize(userId);
-  });
+  // Use a fresh userId per test to avoid shared in-memory state across tests
+  const baseUserId = 'test-user-trust';
 
   describe('initialize', () => {
     it('should create initial trust score', () => {
+      const userId = `${baseUserId}-init`;
+      TrustScoreService.initialize(userId);
       const score = TrustScoreService.getScore(userId);
       expect(score).not.toBeNull();
       expect(score?.overall).toBe(50);
@@ -64,6 +63,8 @@ describe('TrustScoreService', () => {
 
   describe('updateScore', () => {
     it('should update trust score', () => {
+      const userId = `${baseUserId}-update`;
+      TrustScoreService.initialize(userId);
       const score = TrustScoreService.updateScore(userId, { identity: 100 }, 'KYC verified');
       expect(score.components.identity).toBe(100);
       expect(score.overall).toBeGreaterThan(50);
@@ -72,11 +73,13 @@ describe('TrustScoreService', () => {
 
   describe('getHistory', () => {
     it('should return empty history initially', () => {
-      const history = TrustScoreService.getHistory(userId);
+      const history = TrustScoreService.getHistory(`${baseUserId}-history-empty`);
       expect(history).toHaveLength(0);
     });
 
     it('should record history after updates', () => {
+      const userId = `${baseUserId}-history-record`;
+      TrustScoreService.initialize(userId);
       TrustScoreService.updateScore(userId, { identity: 100 }, 'KYC verified');
       const history = TrustScoreService.getHistory(userId);
       expect(history.length).toBeGreaterThan(0);
@@ -129,40 +132,42 @@ describe('IdentityService', () => {
 });
 
 describe('FraudService', () => {
-  const userId = 'test-user-fraud';
+  // Use a fresh userId per test to avoid shared in-memory state across tests
+  const baseUserId = 'test-user-fraud';
 
   describe('check', () => {
     it('should return LOW risk by default', () => {
-      const check = FraudService.check(userId);
+      const check = FraudService.check(`${baseUserId}-low`);
       expect(check.risk).toBe(FraudRisk.LOW);
       expect(check.flags).toHaveLength(0);
     });
 
     it('should detect unusual location', () => {
-      const check = FraudService.check(userId, { location: 'unknown-city' });
-      expect(check.flags).toContain('unusual_location');
+      const check = FraudService.check(`${baseUserId}-location`, { location: 'unknown-city' });
+      expect(check.flags).toContain(FraudFlag.UNUSUAL_LOCATION);
     });
 
     it('should detect suspicious device', () => {
-      const check = FraudService.check(userId, { deviceId: 'emulator-123' });
-      expect(check.flags).toContain('suspicious_device');
+      const check = FraudService.check(`${baseUserId}-device`, { deviceId: 'emulator-123' });
+      expect(check.flags).toContain(FraudFlag.SUSPICIOUS_DEVICE);
     });
   });
 
   describe('getHistory', () => {
     it('should return empty history initially', () => {
-      const history = FraudService.getHistory(userId);
+      const history = FraudService.getHistory(`${baseUserId}-fresh`);
       expect(history).toHaveLength(0);
     });
   });
 });
 
 describe('ReputationService', () => {
-  const userId = 'test-user-rep';
+  // Use a fresh userId per test to avoid shared in-memory state across tests
+  const baseUserId = 'test-user-rep';
 
   describe('initialize', () => {
     it('should create initial reputation', () => {
-      const rep = ReputationService.initialize(userId);
+      const rep = ReputationService.initialize(`${baseUserId}-init`);
       expect(rep.score).toBe(50);
       expect(rep.reviews).toBe(0);
       expect(rep.level).toBe(ReputationLevel.NEW);
@@ -171,12 +176,13 @@ describe('ReputationService', () => {
 
   describe('addReview', () => {
     it('should add review and update rating', () => {
-      const rep = ReputationService.addReview(userId, 5);
+      const rep = ReputationService.addReview(`${baseUserId}-single`, 5);
       expect(rep.reviews).toBe(1);
       expect(rep.avgRating).toBe(5);
     });
 
     it('should average multiple reviews', () => {
+      const userId = `${baseUserId}-average`;
       ReputationService.addReview(userId, 3);
       const rep = ReputationService.addReview(userId, 5);
       expect(rep.reviews).toBe(2);
@@ -186,12 +192,13 @@ describe('ReputationService', () => {
 
   describe('addBadge', () => {
     it('should add badge', () => {
-      const rep = ReputationService.addBadge(userId, 'top-contributor');
+      const rep = ReputationService.addBadge(`${baseUserId}-badge`, 'top-contributor');
       expect(rep.badges).toContain('top-contributor');
-      expect(rep.score).toBe(55); // +5 for badge
+      expect(rep.score).toBe(55); // 50 (initial) + 5 (badge)
     });
 
     it('should not duplicate badges', () => {
+      const userId = `${baseUserId}-dup`;
       ReputationService.addBadge(userId, 'top-contributor');
       const rep = ReputationService.addBadge(userId, 'top-contributor');
       expect(rep.badges.filter((b: string) => b === 'top-contributor').length).toBe(1);
