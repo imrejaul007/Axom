@@ -3,7 +3,8 @@
  * @module services/reputationService
  */
 
-import type { ReputationScore, ReputationLevel } from '../types.js';
+import type { ReputationScore } from '../types.js';
+import { ReputationLevel } from '../types.js';
 
 // In-memory store
 const reputations = new Map<string, ReputationScore>();

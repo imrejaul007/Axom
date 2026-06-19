@@ -3,7 +3,8 @@
  * @module services/fraudService
  */
 
-import type { FraudCheck, FraudRisk, FraudFlag } from '../types.js';
+import type { FraudCheck } from '../types.js';
+import { FraudRisk, FraudFlag } from '../types.js';
 
 // In-memory store
 const fraudChecks = new Map<string, FraudCheck[]>();

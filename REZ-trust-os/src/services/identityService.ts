@@ -3,7 +3,8 @@
  * @module services/identityService
  */
 
-import type { IdentityVerification, IdentityStatus, KycLevel } from '../types.js';
+import type { IdentityVerification } from '../types.js';
+import { IdentityStatus, KycLevel } from '../types.js';
 
 // In-memory store
 const identities = new Map<string, IdentityVerification>();

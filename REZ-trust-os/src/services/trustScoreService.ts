@@ -4,7 +4,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import type { TrustScore, TrustTier, TrustChange } from '../types.js';
+import type { TrustScore, TrustChange } from '../types.js';
+import { TrustTier } from '../types.js';
 
 // In-memory store (replace with MongoDB in production)
 const trustScores = new Map<string, TrustScore>();

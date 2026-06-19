@@ -49,7 +49,7 @@
         }
       ]
     },
-    "testMatch": ["**/__tests__/**/*.test.ts"],
+    "testMatch": ["**/__tests__/**/*.test.ts", "**/src/**/*.test.ts"],
     "testPathIgnorePatterns": ["/node_modules/", "/dist/"]
   }
 }
