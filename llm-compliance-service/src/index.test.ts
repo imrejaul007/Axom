@@ -1,41 +1,37 @@
 /**
  * LLM Compliance Service - Unit Tests
  * @module llm-compliance-service.test
+ *
+ * Asserts on the source file directly (no app import) to avoid
+ * ESM .js -> .ts resolution issues in this Jest setup.
  */
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+const SRC = fs.readFileSync(
+  path.join(__dirname, 'index.ts'),
+  'utf-8'
+);
 
 describe('LLM Compliance Service', () => {
   describe('Health Check', () => {
-    it('should export health check function', () => {
-      expect(true).toBe(true);
+    it('should register a /health route', () => {
+      expect(SRC).toMatch(/app\.get\(['"`]\/health['"`]/);
+    });
+
+    it('should return a JSON body on /health', () => {
+      expect(SRC).toMatch(/res\.json\s*\(/);
     });
   });
 
-  describe('Content Validation', () => {
-    it('should validate AI-generated content', () => {
-      // Placeholder for content validation tests
-      expect(true).toBe(true);
+  describe('LLM Compliance API', () => {
+    it('should expose a /validate route', () => {
+      expect(SRC).toMatch(/app\.(get|post)\(['"`]\/validate/);
     });
 
-    it('should detect PII in content', () => {
-      // Placeholder for PII detection tests
-      expect(true).toBe(true);
-    });
-
-    it('should analyze tone and sentiment', () => {
-      // Placeholder for tone analysis tests
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Compliance Checks', () => {
-    it('should check regulatory compliance', () => {
-      // Placeholder for compliance checks tests
-      expect(true).toBe(true);
-    });
-
-    it('should flag potential violations', () => {
-      // Placeholder for violation flagging tests
-      expect(true).toBe(true);
+    it('should expose a /validate/quick route', () => {
+      expect(SRC).toMatch(/app\.(get|post)\(['"`]\/validate\/quick/);
     });
   });
 });

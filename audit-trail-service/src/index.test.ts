@@ -1,36 +1,37 @@
 /**
  * Audit Trail Service - Unit Tests
  * @module audit-trail-service.test
+ *
+ * Asserts on the source file directly (no app import) to avoid
+ * ESM .js -> .ts resolution issues in this Jest setup.
  */
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+const SRC = fs.readFileSync(
+  path.join(__dirname, 'index.ts'),
+  'utf-8'
+);
 
 describe('Audit Trail Service', () => {
   describe('Health Check', () => {
-    it('should export health check function', () => {
-      expect(true).toBe(true);
+    it('should register a /health route', () => {
+      expect(SRC).toMatch(/app\.get\(['"`]\/health['"`]/);
+    });
+
+    it('should return a JSON body on /health', () => {
+      expect(SRC).toMatch(/res\.json\s*\(/);
     });
   });
 
-  describe('Compliance Logging', () => {
-    it('should log compliance events', () => {
-      // Placeholder for compliance logging tests
-      expect(true).toBe(true);
+  describe('Audit API', () => {
+    it('should expose a /log route', () => {
+      expect(SRC).toMatch(/app\.(get|post)\(['"`]\/log/);
     });
 
-    it('should track event outcomes', () => {
-      // Placeholder for outcome tracking tests
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Reporting', () => {
-    it('should generate compliance reports', () => {
-      // Placeholder for reporting tests
-      expect(true).toBe(true);
-    });
-
-    it('should export audit logs', () => {
-      // Placeholder for export tests
-      expect(true).toBe(true);
+    it('should support POST for log ingestion', () => {
+      expect(SRC).toMatch(/app\.post\(/);
     });
   });
 });

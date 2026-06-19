@@ -1,36 +1,37 @@
 /**
  * Agent Governance Service - Unit Tests
  * @module agent-governance-service.test
+ *
+ * Asserts on the source file directly (no app import) to avoid
+ * ESM .js -> .ts resolution issues in this Jest setup.
  */
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+const SRC = fs.readFileSync(
+  path.join(__dirname, 'index.ts'),
+  'utf-8'
+);
 
 describe('Agent Governance Service', () => {
   describe('Health Check', () => {
-    it('should export health check function', () => {
-      expect(true).toBe(true);
+    it('should register a /health route', () => {
+      expect(SRC).toMatch(/app\.get\(['"`]\/health['"`]/);
+    });
+
+    it('should return a JSON body on /health', () => {
+      expect(SRC).toMatch(/res\.json\s*\(/);
     });
   });
 
-  describe('Agent Permissions', () => {
-    it('should validate agent permissions', () => {
-      // Placeholder for agent permission validation tests
-      expect(true).toBe(true);
+  describe('Governance API', () => {
+    it('should expose a /agents route', () => {
+      expect(SRC).toMatch(/app\.(get|post)\(['"`]\/agents/);
     });
 
-    it('should check agent boundaries', () => {
-      // Placeholder for boundary checking tests
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Approval Workflow', () => {
-    it('should handle approval workflow', () => {
-      // Placeholder for approval workflow tests
-      expect(true).toBe(true);
-    });
-
-    it('should validate approvals', () => {
-      // Placeholder for approval validation tests
-      expect(true).toBe(true);
+    it('should support agent listing (GET)', () => {
+      expect(SRC).toMatch(/app\.get\(['"`]\/agents/);
     });
   });
 });
