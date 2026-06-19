@@ -1,0 +1,565 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── PROFILES ────────────────────────────────────────────────────────────────
+
+model Profile {
+  id             String    @id @default(cuid())
+  rezUserId      String    @unique
+  phone          String    @unique
+  name           String
+  bio            String?   @db.Text
+  age            Int
+  gender         Gender
+  interestedIn   Gender[]
+  intent         Intent    @default(DATING)
+  city           String
+  lat            Float?
+  lng            Float?
+  photos         String[]
+  isVerified     Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  isSuspended    Boolean   @default(false)
+  isDeleted      Boolean   @default(false)
+  profileScore   Float     @default(0)
+  rezSpendScore  Float     @default(0)
+  lastActiveAt   DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sentLikes        Like[]            @relation("SentLikes")
+  receivedLikes    Like[]            @relation("ReceivedLikes")
+  matchesUser1     Match[]           @relation("MatchUser1")
+  matchesUser2     Match[]           @relation("MatchUser2")
+  sentGifts        Gift[]            @relation("SentGifts")
+  receivedGifts    Gift[]            @relation("ReceivedGifts")
+  checkins         MeetupCheckin[]
+  reports          Report[]          @relation("Reporter")
+  reported         Report[]          @relation("Reported")
+  blocks           Block[]           @relation("Blocker")
+  blocked          Block[]           @relation("Blocked")
+  fraudFlags       FraudFlag[]
+  // Safety controls (Sprint 12)
+  requireMessageRequest Boolean  @default(false)
+  verifiedOnly          Boolean  @default(false)
+  onlyVerifiedCanLike   Boolean  @default(false)
+  shadowScore           Float    @default(0)   // anti-creep invisible score — lower = shown less
+  responseRate          Float    @default(1.0) // 0–1, updated when requests accepted/declined
+  meetupCount           Int      @default(0)   // verified meetups completed — trust signal
+  inviteCode            String   @unique @default(cuid()) // share link code
+  referredBy            String?  // inviteCode of the profile who invited this user
+  referralCount         Int      @default(0)   // how many users signed up with their code
+
+  organizedPlans        Plan[]              @relation("OrganizedPlans")
+  planApplications      PlanApplication[]   @relation("PlanApplications")
+  confirmations        PlanConfirmation[]
+  sentRequests          MessageRequest[]    @relation("SentRequests")
+  receivedRequests      MessageRequest[]    @relation("ReceivedRequests")
+  experienceCredits     ExperienceCredit[]
+
+  @@index([city])
+  @@index([rezUserId])
+  @@index([isActive, city])
+  @@index([isDeleted])
+  @@map("profiles")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
+
+enum Intent {
+  DATING
+  FRIENDSHIP
+  NETWORKING
+}
+
+// ─── LIKES & MATCHES ─────────────────────────────────────────────────────────
+
+model Like {
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  createdAt  DateTime @default(now())
+
+  fromUser   Profile  @relation("SentLikes",    fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     Profile  @relation("ReceivedLikes", fields: [toUserId],   references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId])
+  @@map("likes")
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  user1Id      String
+  user2Id      String
+  intentType   Intent      @default(DATING)
+  status       MatchStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user1        Profile     @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2        Profile     @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messageState MessageState?
+  gifts        Gift[]
+  checkins     MeetupCheckin[]
+  rewards      Reward[]
+  messageRequests MessageRequest[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@map("matches")
+}
+
+enum MatchStatus {
+  ACTIVE
+  ARCHIVED
+  UNMATCHED
+  BLOCKED
+}
+
+// ─── MESSAGING STATE MACHINE ─────────────────────────────────────────────────
+
+model MessageState {
+  id                String     @id @default(cuid())
+  matchId           String     @unique
+  state             ChatState  @default(MATCHED)
+  freeMessageUsedBy String?
+  giftUnlockCount   Int        @default(0)
+  lastActivityAt    DateTime   @default(now())
+  expiresAt         DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  match             Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  messages          Message[]
+
+  @@map("message_states")
+}
+
+enum ChatState {
+  MATCHED
+  FREE_MSG_SENT
+  AWAITING_REPLY
+  LOCKED
+  GIFT_PENDING
+  GIFT_UNLOCKED
+  OPEN
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  matchId   String
+  stateId   String
+  senderId  String
+  content   String      @db.VarChar(1000)
+  type      MessageType
+  giftId    String?
+  flagged   Boolean     @default(false)
+  read      Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  state     MessageState @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@index([stateId])
+  @@index([matchId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+enum MessageType {
+  FREE
+  GIFT_UNLOCKED
+  OPEN_CHAT
+}
+
+// ─── GIFTS ───────────────────────────────────────────────────────────────────
+
+model Gift {
+  id                String     @id @default(cuid())
+  senderId          String
+  receiverId        String
+  matchId           String
+  giftType          GiftType
+  amountPaise       Int
+  rezCatalogItemId  String?
+  rezHoldId         String?
+  rezVoucherId      String?
+  merchantName      String?
+  merchantLogoUrl   String?
+  message           String?    @db.VarChar(200)
+  status            GiftStatus @default(PENDING)
+  messageUnlocked   Boolean    @default(false)
+  attemptNumber     Int        @default(1)
+  expiresAt         DateTime
+  acceptedAt        DateTime?
+  rejectedAt        DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  sender            Profile    @relation("SentGifts",     fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver          Profile    @relation("ReceivedGifts", fields: [receiverId], references: [id], onDelete: Cascade)
+  match             Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([matchId])
+  @@index([status, expiresAt])
+  @@map("gifts")
+}
+
+enum GiftType {
+  COIN
+  MERCHANT_VOUCHER
+}
+
+enum GiftStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+// ─── MEETUP & REWARDS ────────────────────────────────────────────────────────
+
+model MeetupCheckin {
+  id               String           @id @default(cuid())
+  matchId          String
+  bookingId        String
+  rezMerchantId    String
+  userId           String
+  checkedInAt      DateTime         @default(now())
+  validationMethod ValidationMethod @default(QR)
+
+  match            Match            @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user             Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+  @@index([bookingId])
+  @@index([userId])
+  @@map("meetup_checkins")
+}
+
+enum ValidationMethod {
+  QR
+}
+
+model Reward {
+  id            String       @id @default(cuid())
+  matchId       String
+  bookingId     String
+  user1Id       String
+  user2Id       String
+  status        RewardStatus @default(PENDING)
+  rezRewardRef  String?
+  triggeredAt   DateTime?
+  createdAt     DateTime     @default(now())
+
+  match         Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, bookingId])
+  @@index([bookingId])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@map("rewards")
+}
+
+enum RewardStatus {
+  PENDING
+  TRIGGERED
+  FAILED
+}
+
+// ─── MODERATION & SAFETY ─────────────────────────────────────────────────────
+
+model Report {
+  id          String       @id @default(cuid())
+  reporterId  String
+  reportedId  String
+  reason      ReportReason
+  detail      String?      @db.VarChar(500)
+  status      ReportStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime     @default(now())
+
+  reporter    Profile      @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported    Profile      @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("reports")
+}
+
+enum ReportReason {
+  HARASSMENT
+  FAKE_PROFILE
+  SPAM
+  INAPPROPRIATE_CONTENT
+  SCAM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTION_TAKEN
+  DISMISSED
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker   Profile  @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   Profile  @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
+}
+
+// ─── PLANS (Social Invites) ───────────────────────────────────────────────────
+
+model Plan {
+  id                   String           @id @default(cuid())
+  organizerId          String
+  organizer            Profile          @relation("OrganizedPlans", fields: [organizerId], references: [id], onDelete: Cascade)
+  category             PlanCategory
+  merchantId           String
+  merchantName         String
+  rezBookingRef        String           @unique
+  title                String           @db.VarChar(120)
+  scheduledAt          DateTime
+  expiresAt            DateTime
+  confirmationDeadline DateTime
+  city                 String
+  genderPreference     GenderPref       @default(ANY)
+  ageMin               Int              @default(18)
+  ageMax               Int              @default(60)
+  capacity             Int              @default(1)
+  visibility           PlanVisibility   @default(PUBLIC)
+  verifiedOnly         Boolean          @default(false)
+  status               PlanStatus       @default(OPEN)
+  reselectionCount     Int              @default(0)
+  maxReselections      Int              @default(2)
+  applicantCount       Int              @default(0)
+  viewsCount           Int              @default(0)
+  vibe                 PlanVibe?
+  boostedUntil         DateTime?
+  matchId              String?
+  isExperiencePlan     Boolean          @default(false)
+  // P3 FIX: Merchant sponsorship — merchants fund plans to acquire users through dating demand.
+  isSponsored          Boolean          @default(false)
+  sponsorBudgetCoins  Int              @default(0)
+  sponsorSpentCoins   Int              @default(0)
+  sponsorPerAttendeeCoins Int           @default(100)  // default: 100 coins (₹10) per confirmed attendee
+  applications         PlanApplication[]
+  confirmations        PlanConfirmation[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  isDeleted            Boolean          @default(false)
+
+  @@index([city, status, scheduledAt])
+  @@index([organizerId])
+  @@index([matchId])
+  @@index([isDeleted, status])
+  @@map("plans")
+}
+
+model PlanApplication {
+  id          String            @id @default(cuid())
+  planId      String
+  plan        Plan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  applicantId String
+  applicant   Profile           @relation("PlanApplications", fields: [applicantId], references: [id], onDelete: Cascade)
+  note        String?           @db.VarChar(500)
+  score       Float             @default(0)
+  status      ApplicationStatus @default(PENDING)
+  selectedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([planId, applicantId])
+  @@index([planId, status])
+  @@index([applicantId])
+  @@map("plan_applications")
+}
+
+model PlanConfirmation {
+  id          String   @id @default(cuid())
+  planId      String
+  plan        Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  confirmedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // BULLETPROOF: tracks sponsor coin credit outcome so failed credits can be retried.
+  // Values: PENDING | CREDITED | FAILED
+  coinCreditStatus  CoinCreditStatus @default(PENDING)
+  coinCreditAttempts Int            @default(0)
+  coinCreditFailedAt DateTime?
+
+  @@unique([planId, profileId])
+  @@index([profileId])
+  @@map("plan_confirmations")
+}
+
+enum CoinCreditStatus {
+  PENDING
+  CREDITED
+  FAILED
+}
+
+enum PlanCategory {
+  DINNER
+  LUNCH
+  BREAKFAST
+  BRUNCH
+  SPA
+  SALON
+  SHOPPING
+  BADMINTON
+  SPORTS
+  GAMING
+}
+
+enum PlanStatus {
+  OPEN
+  FILLED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+  NO_SHOW
+}
+
+enum PlanVibe {
+  CASUAL
+  PREMIUM
+  QUICK
+  WEEKEND
+}
+
+enum PlanVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum GenderPref {
+  MALE
+  FEMALE
+  NON_BINARY
+  ANY
+}
+
+enum ApplicationStatus {
+  PENDING
+  SELECTED
+  REJECTED
+  WITHDRAWN
+}
+
+// ─── MESSAGE REQUESTS (Sprint 12) ────────────────────────────────────────────
+
+model MessageRequest {
+  id          String               @id @default(cuid())
+  matchId     String
+  senderId    String
+  receiverId  String
+  previewText String               @db.VarChar(200)
+  status      MessageRequestStatus @default(PENDING)
+  createdAt   DateTime             @default(now())
+  respondedAt DateTime?
+
+  sender      Profile              @relation("SentRequests",    fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver    Profile              @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  match       Match                @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, senderId])
+  @@index([receiverId, status])
+  @@index([matchId])
+  @@map("message_requests")
+}
+
+enum MessageRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+// ─── FRAUD TRACKING ──────────────────────────────────────────────────────────
+
+model FraudFlag {
+  id        String    @id @default(cuid())
+  userId    String
+  type      FraudType
+  detail    String?
+  resolved  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  user      Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type, resolved])
+  @@map("fraud_flags")
+}
+
+enum FraudType {
+  GIFT_SPAM
+  REWARD_FARMING
+  MULTIPLE_ACCOUNTS
+  FAKE_CHECKIN
+}
+
+// ─── EXPERIENCE CREDITS (from REZ spending rewards) ──────────────────────────
+
+model ExperienceCredit {
+  id           String                 @id @default(cuid())
+  profileId    String
+  rezUserId    String
+  rezRewardId  String                 @unique
+  tier         ExperienceTier
+  type         ExperienceCreditType
+  label        String
+  status       ExperienceCreditStatus @default(AVAILABLE)
+  expiresAt    DateTime
+  usedInPlanId String?
+  grantedAt    DateTime               @default(now())
+
+  profile      Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, status])
+  @@index([rezRewardId])
+  @@map("experience_credits")
+}
+
+enum ExperienceTier {
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum ExperienceCreditType {
+  COFFEE_BRUNCH
+  DINNER_FOR_TWO
+  PREMIUM_EXPERIENCE
+}
+
+enum ExperienceCreditStatus {
+  AVAILABLE
+  USED
+  EXPIRED
+}

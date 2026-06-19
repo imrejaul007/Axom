@@ -1,0 +1,14 @@
+{
+  "id": "session-1777070102783",
+  "startedAt": "2026-04-24T22:35:02.783Z",
+  "cwd": "/Users/rejaulkarim/Documents/ReZ Full App/Rendez/rendez-backend",
+  "context": {},
+  "metrics": {
+    "edits": 26,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-04-25T04:43:07.983Z",
+  "duration": 22085201
+}

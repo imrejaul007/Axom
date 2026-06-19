@@ -28,7 +28,7 @@ export async function sendBookingToRezMind(booking: BookingEvent): Promise<void>
       }),
     });
   } catch (error) {
-    logger.error('[REZ Mind] Booking event failed:', error);
+    console.error('[REZ Mind] Booking event failed:', error);
   }
 }
 
@@ -52,6 +52,6 @@ export async function sendProfileViewToRezMind(data: {
       }),
     });
   } catch (error) {
-    logger.error('[REZ Mind] Profile view event failed:', error);
+    console.error('[REZ Mind] Profile view event failed:', error);
   }
 }

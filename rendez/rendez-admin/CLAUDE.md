@@ -1,45 +1,55 @@
-# CLAUDE.md - Rendez Admin
+# Rendez Admin Dashboard
 
-## Project Overview
-
-**Name:** Rendez Admin
-**Company:** Axom
-**Type:** Other
-**Port:** 3000
-
-## Tech Stack
-
-- Node.js 20+
-- Express.js
-- TypeScript
-- MongoDB
-- Redis
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm install` | Install dependencies |
-| `npm run dev` | Development server |
-| `npm run build` | Build for production |
-| `npm start` | Production server |
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| PORT | No | Service port (default: 3000) |
-| MONGODB_URI | Yes | MongoDB connection |
-| JWT_SECRET | Yes | JWT signing |
-| REDIS_URL | No | Redis connection |
-
-## Integration
-
-- RABTUL Auth (4002)
-- RABTUL Payment (4001)
-- RABTUL Wallet (4004)
-- RABTUL Notification (4005)
+**Version:** 1.0.0 | **Framework:** Next.js 14 | **Company:** Axom
 
 ---
 
-**Last Updated:** 2026-06-12
+## Overview
+
+Admin dashboard for managing Rendez social connecting platform.
+
+---
+
+## Pages
+
+| Page | Description |
+|------|-------------|
+| Dashboard | KPIs, sparklines, user stats |
+| Users | User management (suspend/unsuspend) |
+| Moderation | Content moderation queue |
+| Plans | Plans admin & validation |
+| Gifts | Gift analytics |
+| Meetups | Meetup validation |
+| Fraud | Fraud flags |
+| Coordinator | Seed plans tool |
+| Login | Admin login |
+
+---
+
+## Features
+
+- JWT authentication
+- User management
+- Content moderation
+- Plan verification
+- Fraud detection
+- Analytics dashboard
+
+---
+
+## Setup
+
+```bash
+cd rendez-admin
+npm install
+npm run dev
+```
+
+---
+
+## Environment
+
+```env
+DATABASE_URL=postgresql://...
+NEXTAUTH_SECRET=your-secret
+```

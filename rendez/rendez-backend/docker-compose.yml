@@ -1,54 +1,93 @@
-version: '3.8'
+# ===========================================
+# Rendez Backend — Docker Compose
+# ===========================================
+# Includes PostgreSQL with PgBouncer connection pooler
+# ===========================================
+
 services:
-  app:
+  # ── PostgreSQL ───────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: rendez-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: rendez
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: rendez_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rendez']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── PgBouncer Connection Pooler ───────────
+  # Sits between app and PostgreSQL
+  # Reduces connection overhead, handles connection spikes
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: rendez-pgbouncer
+    restart: unless-stopped
+    ports:
+      - '6432:5432'  # PgBouncer listens on 6432, forwards to postgres
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer-userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    environment:
+      DATABASE_URL: postgresql://rendez:changeme@postgres:5432/rendez_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'pgbouncer -d /etc/pgbouncer/pgbouncer.ini -R']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Rendez Backend ─────────────────────────
+  rendez-backend:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: rendez-backend
+    restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - '4000:4000'
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - MONGODB_URI=${MONGODB_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: production
+      DATABASE_URL: postgresql://rendez:changeme@pgbouncer:5432/rendez_dev
+      REDIS_URL: redis://redis:6379
+      PORT: 4000
     depends_on:
-      - mongodb
-      - redis
-    networks:
-      - rtnm
-    restart: unless-stopped
+      pgbouncer:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4000/health || exit 1']
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
 
-  mongodb:
-    image: mongo:6-alpine
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - rtnm
-    restart: unless-stopped
-
+  # ── Redis ──────────────────────────────────
   redis:
     image: redis:7-alpine
+    container_name: rendez-redis
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
-    networks:
-      - rtnm
-    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-networks:
-  rtnm:
-    driver: bridge
-
+# ── Volumes ──────────────────────────────────
 volumes:
-  mongo_data:
+  postgres_data:
+    driver: local
   redis_data:
+    driver: local

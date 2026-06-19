@@ -1,0 +1,11 @@
+# ===========================================
+# PgBouncer User List
+# ===========================================
+# Format: "username" "password_hash"
+# Generate password hash: echo -n "password" | md5sum
+# ===========================================
+# Replace with actual credentials from .env
+# ===========================================
+
+"rendez" "md5placeholder"
+"rendez_admin" "md5placeholder"

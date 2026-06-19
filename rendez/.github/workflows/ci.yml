@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Backend Tests ────────────────────────────────────────────────────────────
+  backend-test:
+    name: Backend — Jest E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rendez
+          POSTGRES_PASSWORD: rendez_test
+          POSTGRES_DB: rendez_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://rendez:rendez_test@localhost:5432/rendez_test
+      TEST_DATABASE_URL: postgresql://rendez:rendez_test@localhost:5432/rendez_test
+      REDIS_URL: redis://localhost:6379/1
+      JWT_SECRET: ci-test-secret-rendez-not-for-production
+      JWT_EXPIRES_IN: 1h
+      NODE_ENV: test
+      REZ_PARTNER_API_URL: https://api.rez.money/partner/v1
+      REZ_PARTNER_API_KEY: ci-test-key
+      REZ_WEBHOOK_SECRET: ci-test-webhook-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: rendez-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: rendez-backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: rendez-backend
+        run: npx prisma generate
+
+      - name: Push schema to test DB
+        working-directory: rendez-backend
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: postgresql://rendez:rendez_test@localhost:5432/rendez_test
+
+      - name: Run tests
+        working-directory: rendez-backend
+        run: npm test -- --coverage --ci
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: rendez-backend/coverage/
+          retention-days: 7
+
+  # ── Admin Typecheck ──────────────────────────────────────────────────────────
+  admin-typecheck:
+    name: Admin — TypeScript check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: rendez-admin/package-lock.json
+
+      - name: Install dependencies
+        working-directory: rendez-admin
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: rendez-admin
+        run: npx tsc --noEmit
+
+      - name: Build check
+        working-directory: rendez-admin
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://rendez-backend.onrender.com
+
+  # ── App Typecheck ────────────────────────────────────────────────────────────
+  app-typecheck:
+    name: App — TypeScript check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: rendez-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: rendez-app
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: rendez-app
+        run: npx tsc --noEmit
+
+  # ── Deploy Gate ──────────────────────────────────────────────────────────────
+  deploy-gate:
+    name: Deploy gate (all checks passed)
+    runs-on: ubuntu-latest
+    needs: [backend-test, admin-typecheck, app-typecheck]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: All checks passed — ready to deploy
+        run: |
+          echo "✓ Backend E2E tests passed"
+          echo "✓ Admin TypeScript clean"
+          echo "✓ App TypeScript clean"
+          echo ""
+          echo "Deploy targets:"
+          echo "  Backend → Render (auto-deploy on push to main)"
+          echo "  Admin   → Vercel (auto-deploy on push to main)"
+          echo ""
+          echo "Next step: eas build --platform all --profile production"

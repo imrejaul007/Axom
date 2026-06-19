@@ -1,0 +1,80 @@
+services:
+  # ─── Rendez Backend API ───────────────────────────────────────────────────
+  - type: web
+    name: rendez-backend
+    runtime: node
+    region: singapore          # closest to India
+    plan: starter              # $7/mo
+    rootDir: rendez-backend
+    buildCommand: cd rendez-backend && npm ci && npx prisma generate && npm run build
+    startCommand: cd rendez-backend && npx prisma migrate deploy && node dist/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rendez-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false            # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REZ_PARTNER_API_URL
+        value: https://rez-api-gateway.onrender.com
+      - key: REZ_PARTNER_API_KEY
+        sync: false            # Set manually
+      - key: REZ_WEBHOOK_SECRET
+        generateValue: true
+      - key: RENDEZ_WEBHOOK_SECRET
+        generateValue: true    # Shared HMAC secret for Sprint 15 — copy value to REZ backend env
+      - key: REZ_BACKEND_URL
+        value: https://api.rezapp.com
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false            # Paste the full service account JSON
+      - key: ADMIN_API_KEY
+        generateValue: true
+      - key: MAX_GIFTS_PER_DAY
+        value: "5"
+      - key: GIFT_EXPIRY_HOURS
+        value: "48"
+      - key: MATCH_EXPIRY_HOURS
+        value: "72"
+      - key: REWARD_COOLDOWN_DAYS
+        value: "90"
+      - key: SENTRY_DSN
+        sync: false            # Optional
+
+  # ─── Rendez Admin (Next.js) ───────────────────────────────────────────────
+  - type: web
+    name: rendez-admin
+    runtime: node
+    region: singapore
+    plan: starter
+    rootDir: rendez-admin
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    autoDeploy: true
+
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://rendez-backend.onrender.com
+      - key: NODE_ENV
+        value: production
+
+databases:
+  # ─── Rendez PostgreSQL ────────────────────────────────────────────────────
+  - name: rendez-db
+    databaseName: rendez
+    plan: starter              # $7/mo — 1 GB storage, 97 connection limit
+    region: singapore

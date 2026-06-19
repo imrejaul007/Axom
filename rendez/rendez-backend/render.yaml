@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: rendez-backend
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rendez-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: rendez-redis
+          type: redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REZ_PARTNER_API_URL
+        sync: false
+      - key: REZ_PARTNER_API_KEY
+        sync: false
+      - key: REZ_WEBHOOK_SECRET
+        sync: false
+      - key: REZ_BACKEND_URL
+        value: "https://rez-backend-8dfu.onrender.com"
+      - key: RENDEZ_WEBHOOK_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: FCM_SERVER_KEY
+        sync: false
+      - key: MAX_GIFTS_PER_DAY
+        value: "5"
+      - key: GIFT_EXPIRY_HOURS
+        value: "48"
+      - key: MATCH_EXPIRY_HOURS
+        value: "72"
+      - key: REWARD_COOLDOWN_DAYS
+        value: "90"
+
+databases:
+  - name: rendez-postgres
+    databaseName: rendez
+    user: rendez
+    plan: starter
+    region: singapore
+    # Note: Render Starter PostgreSQL has connection limits.
+    # For high-traffic production, upgrade to:
+    # - Render Starter with 10 connections, or
+    # - Use external PgBouncer with Render Pro PostgreSQL
+    # Render automatically pools connections for Starter tier.
+
+  - name: rendez-redis
+    type: redis
+    plan: starter
+    region: singapore

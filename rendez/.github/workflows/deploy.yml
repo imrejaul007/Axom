@@ -1,0 +1,102 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  RENDER_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+  REZ_API_KEY: ${{ secrets.REZ_PARTNER_API_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Blueprint
+        run: |
+          curl -s -X POST "https://api.render.com/v1/blueprints" \
+            -H "Authorization: Bearer $RENDER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repo": "https://github.com/imrejaul007/Rendez",
+              "owner": "imrejaul007",
+              "branch": "main",
+              "dry": false,
+              "specPath": "render.yaml"
+            }' | tee blueprint_response.json
+          echo "Blueprint deployed"
+
+      - name: Wait for services to be created
+        run: sleep 90
+
+      - name: Get services list
+        run: |
+          curl -s "https://api.render.com/v1/services" \
+            -H "Authorization: Bearer $RENDER_TOKEN" > services.json
+          cat services.json
+
+      - name: Setup REZ_PARTNER_API_KEY
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import subprocess
+          import os
+
+          token = os.environ.get('RENDER_TOKEN', '')
+          api_key = os.environ.get('REZ_API_KEY', '')
+
+          # Get services
+          result = subprocess.run(
+            ['curl', '-s', 'https://api.render.com/v1/services',
+             '-H', f'Authorization: Bearer {token}'],
+            capture_output=True, text=True
+          )
+
+          services = json.loads(result.stdout)
+          backend_id = None
+          for s in services:
+            if s.get('name') == 'rendez-backend':
+              backend_id = s.get('id')
+              break
+
+          if backend_id and api_key:
+            subprocess.run([
+              'curl', '-s', '-X', 'PATCH',
+              f'https://api.render.com/v1/services/{backend_id}/env-vars',
+              '-H', f'Authorization: Bearer {token}',
+              '-H', 'Content-Type: application/json',
+              '-d', json.dumps([{"key": "REZ_PARTNER_API_KEY", "value": api_key}])
+            ])
+            print(f"Updated REZ_PARTNER_API_KEY for {backend_id}")
+          else:
+            print(f"Backend ID: {backend_id}, API Key set: {bool(api_key)}")
+          PYTHON_SCRIPT
+
+      - name: Final Status
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import subprocess
+          import os
+
+          token = os.environ.get('RENDER_TOKEN', '')
+
+          result = subprocess.run(
+            ['curl', '-s', 'https://api.render.com/v1/services',
+             '-H', f'Authorization: Bearer {token}'],
+            capture_output=True, text=True
+          )
+
+          services = json.loads(result.stdout)
+          print("## Rendez Deployment Status")
+          print("")
+          print("| Service | URL |")
+          print("|---------|-----|")
+          for s in services:
+            if 'rendez' in s.get('name','').lower():
+              url = s.get('url','') or 'pending'
+              print(f"| {s.get('name')} | {url} |")
+          PYTHON_SCRIPT
