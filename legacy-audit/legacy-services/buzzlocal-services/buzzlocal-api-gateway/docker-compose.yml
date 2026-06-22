@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-4020}:4020"
+    environment:
+      - NODE_ENV=production
+      - PORT=4020
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - rtnm
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongodb:
+    image: mongo:6-alpine
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - rtnm
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rtnm
+    restart: unless-stopped
+
+networks:
+  rtnm:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:

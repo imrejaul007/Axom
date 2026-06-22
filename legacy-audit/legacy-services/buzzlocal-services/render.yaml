@@ -1,0 +1,78 @@
+services:
+  - type: web
+    name: buzzlocal-feed
+    env: static
+    buildCommand: cd buzzlocal-feed-service && npm install && npm run build
+    startCommand: cd buzzlocal-feed-service && npm start
+    healthCheckPath: /health
+    ports:
+      - 4000
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: WALLET_SERVICE_URL
+        value: https://rez-wallet-service.onrender.com
+      - key: MIND_SERVICE_URL
+        value: https://rez-mind.onrender.com
+
+  - type: web
+    name: buzzlocal-vibe
+    env: static
+    buildCommand: cd buzzlocal-vibe-service && npm install && npm run build
+    startCommand: cd buzzlocal-vibe-service && npm start
+    healthCheckPath: /health
+    ports:
+      - 4003
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4003
+      - key: MONGODB_URI
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+
+  - type: web
+    name: buzzlocal-community
+    env: static
+    buildCommand: cd buzzlocal-community-service && npm install && npm run build
+    startCommand: cd buzzlocal-community-service && npm start
+    healthCheckPath: /health
+    ports:
+      - 4004
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4004
+      - key: MONGODB_URI
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+
+  - type: web
+    name: z-events
+    env: static
+    buildCommand: cd z-events-service && npm install && npm run build
+    startCommand: cd z-events-service && npm start
+    healthCheckPath: /health
+    ports:
+      - 4008
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4008
+      - key: MONGODB_URI
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: WALLET_SERVICE_URL
+        value: https://rez-wallet-service.onrender.com

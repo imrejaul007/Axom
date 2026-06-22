@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Cosmic OS",
+    "slug": "cosmic-os",
+    "version": "1.0.0",
+    "scheme": "cosmic-os",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a1a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rez.cosmic-os"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0a1a"
+      },
+      "package": "com.rez.cosmic_os"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
