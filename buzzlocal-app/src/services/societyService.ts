@@ -41,10 +41,31 @@ export interface Announcement {
 export interface Visitor {
   id: string;
   visitorName: string;
+  visitorPhone?: string;
   purpose: string;
   expectedDate: Date;
+  expectedTime?: string;
   flatNumber: string;
   status: 'pending' | 'approved' | 'rejected' | 'arrived' | 'left';
+  checkInTime?: Date;
+  checkOutTime?: Date;
+  notes?: string;
+  // QR Pass fields
+  qrCode?: string;
+  qrToken?: string;
+  qrValidUntil?: Date;
+  qrVerifiedAt?: Date;
+  qrVerifiedBy?: string;
+}
+
+export interface QrPass {
+  qrCode: string;
+  qrToken: string;
+  validUntil: Date;
+  visitorName: string;
+  flatNumber: string;
+  purpose: string;
+  status: string;
 }
 
 export interface Classified {
@@ -135,6 +156,63 @@ export const societyApi = {
     visitor: Visitor;
   }> => {
     const response = await societyService.put(`/${societyId}/visitors/${visitorId}`, { status });
+    return response.data;
+  },
+
+  // QR Pass methods - MyGate killer
+  generateQrPass: async (societyId: string, visitorId: string): Promise<{
+    success: boolean;
+    visitor: Visitor;
+    qrPass: QrPass;
+  }> => {
+    const response = await societyService.post(`/${societyId}/visitors/${visitorId}/generate-qr`);
+    return response.data;
+  },
+
+  getQrPass: async (societyId: string, visitorId: string): Promise<{
+    success: boolean;
+    qrPass: QrPass;
+  }> => {
+    const response = await societyService.get(`/${societyId}/visitors/${visitorId}/qr-pass`);
+    return response.data;
+  },
+
+  verifyQrPass: async (societyId: string, qrToken: string): Promise<{
+    verified: boolean;
+    visitor?: {
+      name: string;
+      phone: string;
+      purpose: string;
+      flatNumber: string;
+      hostName: string;
+      expectedTime?: string;
+      checkInTime?: Date;
+    };
+    society?: {
+      name: string;
+      address: any;
+    };
+    message?: string;
+    error?: string;
+    usedAt?: Date;
+  }> => {
+    const response = await societyService.post(`/${societyId}/visitors/verify-qr`, { qrToken });
+    return response.data;
+  },
+
+  getPendingVisitors: async (societyId: string): Promise<{
+    success: boolean;
+    visitors: Visitor[];
+  }> => {
+    const response = await societyService.get(`/${societyId}/visitors/pending`);
+    return response.data;
+  },
+
+  getMyVisits: async (societyId: string): Promise<{
+    success: boolean;
+    visitors: Visitor[];
+  }> => {
+    const response = await societyService.get(`/${societyId}/visitors/my-visits`);
     return response.data;
   },
 

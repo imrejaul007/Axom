@@ -75,8 +75,8 @@ export default function SocietyDetailScreen() {
             <Ionicons name="calendar" size={24} color={colors.primary} />
             <Text style={styles.actionText}>Book</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="car" size={24} color={colors.accentGreen} />
+          <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/society/visitors?id=${id}&societyName=${society.name}`)}>
+            <Ionicons name="people" size={24} color={colors.accentGreen} />
             <Text style={styles.actionText}>Visitor</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
