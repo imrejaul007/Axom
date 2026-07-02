@@ -4,7 +4,17 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
 
-import { logger } from '../shared/utils/logger';
+const log = (msg: string) => console.log(`[agency-service] ${new Date().toISOString()} ${msg}`);
+const logger = {
+  info: log,
+  debug: log,
+  warn: (msg: string) => console.warn(`[agency-service] ${new Date().toISOString()} ${msg}`),
+  error: (msg: string) => console.error(`[agency-service] ${new Date().toISOString()} ${msg}`),
+  startup: (port: number, features?: string[]) => {
+    console.log(`[agency-service] Starting on port ${port}`);
+    features?.forEach(f => console.log(`  - ${f}`));
+  },
+};
 import { agencyRoutes } from './routes/agencyRoutes';
 import { webhookRoutes } from './routes/webhookRoutes';
 import { errorHandler } from './middleware/errorHandler';

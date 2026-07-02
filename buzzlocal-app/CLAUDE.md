@@ -1,6 +1,24 @@
 # BuzzLocal City OS
 
 **Position:** "Live Pulse of Your City" / "City Operating System"
+**Last Updated:** 2026-06-22
+
+---
+
+## Documentation Status (2026-06-22)
+
+This file is a navigation/index doc. Primary content lives in:
+
+- **[SPEC.md](SPEC.md)** — app features spec (last bumped 2026-06-22, originally 2026-05-19)
+- **[CITY-OS-SPEC.md](CITY-OS-SPEC.md)** — City OS technical spec
+- **[AUDIT.md](AUDIT.md)** — older audit (May 14, 2026, 18 screens / 9 services) — **superseded**, see drift note below
+- **[STRATEGIC-VISION.md](STRATEGIC-VISION.md)** — strategic positioning
+
+### Known drift as of 2026-06-22
+
+- The service ports listed below in "Backend Services" (4000-4008 and the City OS set 4015-4026) are **documented but not verified as live**. Spot-checks on 4000, 4001, 4003, 4004, 4008, 4010, 4020 all returned connection refused.
+- The actual `app/` directory has grown beyond what AUDIT.md describes — see new subdirs: `ask/`, `safe/`, `crisis/`, `marketplace/`, `services/`, `society/`, `corpperks/`, `creators/`, `delivery/`, `movement/`, `offers/`, `onboarding/`, `rides/`, `stayown/`, `analytics/`, `kiosks.tsx`. SPEC.md (City OS, 69 screens) is the closer match.
+- Two files disagree on the API gateway port: this file says 4020, SOT.md says 4000. **Unresolved** — not changed in this pass.
 
 ---
 

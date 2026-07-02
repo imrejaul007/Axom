@@ -1,6 +1,6 @@
 # BuzzLocal Services - Developer Guide
 
-**Version:** 1.0.0 | **Date:** June 4, 2026
+**Version:** 1.0.1 | **Date:** 2026-06-22
 
 ---
 

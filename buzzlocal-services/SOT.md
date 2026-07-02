@@ -1,8 +1,8 @@
 # BuzzLocal Services - Statement of Truth (SOT)
 
-**Version:** 2.0
-**Date:** June 4, 2026
-**Status:** Active - Production
+**Version:** 2.1 (doc refresh)
+**Date:** 2026-06-22
+**Status:** Active - Production (documented; see status note below)
 
 ---
 
@@ -284,5 +284,35 @@ curl http://localhost:4012/health  # Realtime
 
 ## LAST UPDATED
 
-**Date:** June 4, 2026
-**Version:** 2.0
+**Date:** 2026-06-22
+**Version:** 2.1
+
+---
+
+## STATUS & DRIFT NOTES (2026-06-22)
+
+This SOT is the canonical doc for the BuzzLocal Services platform, but the following drift was observed on 2026-06-22 and should be resolved in a follow-up:
+
+### Service count drift
+- 27 service directories now exist on disk under `buzzlocal-services/`
+- The Core Services + Extended Services tables above list 22
+- **Missing from the tables** (verified on disk): `z-events-service`, `buzzlocal-business-service`, `buzzlocal-bulkorder-service`, `buzzlocal-crowd-service`, `buzzlocal-store-discovery`
+- All 27 directories contain source code; this is a doc omission, not a code issue
+
+### API gateway port conflict (UNRESOLVED)
+- SOT.md "Architecture" diagram at the top labels the gateway port as **4000**
+- The Extended Services table (port 4000) says `buzzlocal-api-gateway` lives there
+- `buzzlocal-app/CLAUDE.md` (City OS) says `buzzlocal-api-gateway` is on port **4020**
+- The buzzlocal-app also references `buzzlocal-feed-service` on **4000** (in §6.4 of SPEC.md) and on **4001** (in this SOT)
+- **Action needed:** Pick canonical ports, update all docs. Not done in this pass.
+
+### Live verification (2026-06-22)
+- Spot-checked ports: 4000, 4001, 4003, 4004, 4008, 4010, 4020
+- **All returned connection refused** (HTTP 000)
+- All services in the table are marked **✅** for "documented". Reality of "running" is **unverified** as of 2026-06-22.
+
+### Intentionally not changed
+- No ports renumbered (would break deploy scripts and docker-compose.yml)
+- No service rows deleted (some may be scaffold-only; verify separately)
+- The "City OS" port split (4015-4027) is kept; the question of whether those services actually exist as separate deployables needs a separate audit
+

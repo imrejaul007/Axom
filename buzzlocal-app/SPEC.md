@@ -1,8 +1,8 @@
 # BuzzLocal City OS - Technical Specification
 
-**Version:** 2.0.0
+**Version:** 2.1.0 (doc refresh)
 **Positioning:** "Live Pulse of Your City" / "City Operating System"
-**Last Updated:** 2026-05-19
+**Last Updated:** 2026-06-22
 
 ---
 
@@ -864,3 +864,33 @@ MAPBOX_PUBLIC_TOKEN=
 # Sentry (error tracking)
 SENTRY_DSN=
 ```
+
+---
+
+## 12. Documentation Status & Drift Notes (2026-06-22)
+
+This SPEC.md was originally written on 2026-05-19 to describe the City OS pivot. It was bumped to v2.1 / 2026-06-22 in a documentation-refresh pass. **No new features have been added in this pass; only the date and a drift note.**
+
+### Drift observed on 2026-06-22
+
+1. **Screen count growth** — This spec describes ~17 main screens plus post/event/merchant/creator/community sub-routes (see §3.2). The actual `app/` directory now has 30+ screen files including new areas not enumerated in this spec: `corpperks/`, `creators/` (distinct from `creator/`), `delivery/`, `kiosks.tsx`, `movement/`, `offers/`, `onboarding/`, `rides/`, `stayown/`, `analytics/`, plus expanded City OS screens under `ask/`, `safe/`, `crisis/`, `marketplace/`, `services/`, `society/`. See [CLAUDE.md](CLAUDE.md) for the current directory layout.
+
+2. **Service port changes** — This spec's §6.4 and §9 list 4 services on ports 4000-4008 (feed, vibe, community, z-events). The current [SOT.md](../buzzlocal-services/SOT.md) lists 22 services across 4000-4027. The 4 listed here still exist but are a subset.
+
+3. **Service liveness unverified** — The service ports listed in §6.4 (4000, 4003, 4004, 4008) and referenced throughout this spec were spot-checked on 2026-06-22 and **all returned connection refused**. The services are documented as ✅ in SOT.md but their actual running state is unverified. This spec should be re-read with that caveat.
+
+4. **Older [AUDIT.md](AUDIT.md) is now marked SUPERSEDED** — that May 14, 2026 audit lists 18 screens and 9 services. The City OS scope described here (and in [CITY-OS-SPEC.md](CITY-OS-SPEC.md)) is the current scope. AUDIT.md is preserved as a V1 historical snapshot.
+
+### What is NOT changed in this pass
+
+- No features removed from this spec
+- No service ports renumbered
+- No code changes anywhere
+- No actual feature implementation (this is a doc refresh only)
+
+### Next steps (out of scope for this doc refresh)
+
+- Reconcile the buzzlocal-api-gateway port conflict (CLAUDE.md says 4020, SOT.md says 4000) — see SOT.md drift note §"API gateway port conflict"
+- Either update or remove this SPEC.md's screen count (currently ~17) to match the actual 30+ in code
+- Run `docker compose up` to verify which services actually start
+

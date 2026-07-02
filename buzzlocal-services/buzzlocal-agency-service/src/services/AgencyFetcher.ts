@@ -1,7 +1,12 @@
 import axios from 'axios';
-import { logger } from '../../shared/utils/logger';
 import { AgencyAlert, AgencySource } from '../models/AgencyModels';
 import { NotificationService } from './NotificationService';
+
+const logger = {
+  info: (msg: string) => console.log(`[AgencyFetcher] ${msg}`),
+  error: (msg: string, meta?: any) => console.error(`[AgencyFetcher] ERROR: ${msg}`, meta),
+  warn: (msg: string) => console.warn(`[AgencyFetcher] WARN: ${msg}`),
+};
 
 export class AgencyFetcher {
   private notificationService: NotificationService;

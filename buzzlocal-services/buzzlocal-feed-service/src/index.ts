@@ -1,5 +1,10 @@
 import express from 'express';
-import logger from './utils/logger';
+const logger = {
+  info: (msg: string, ...args: any[]) => console.log(`[feed] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[feed] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => console.warn(`[feed] ${msg}`, ...args),
+  debug: (msg: string, ...args: any[]) => console.log(`[feed] ${msg}`, ...args),
+};
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';

@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import QRCode from 'qrcode';
 import {
   Society,
   SocietyMember,
@@ -340,6 +342,216 @@ router.put('/:id/visitors/:visitorId', async (req: Request, res: Response, next:
     await visitor.save();
 
     res.json({ success: true, visitor });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ==================== QR PASS - MyGate Killer ====================
+
+// POST /api/societies/:id/visitors/:visitorId/generate-qr
+// Generates QR pass when resident approves visitor
+router.post('/:id/visitors/:visitorId/generate-qr', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id, visitorId } = req.params;
+    const userId = getUserId(req);
+
+    const visitor = await Visitor.findById(visitorId);
+    if (!visitor || visitor.societyId !== id) {
+      return res.status(404).json({ error: 'Visitor not found' });
+    }
+
+    // Only host can generate QR pass
+    if (visitor.hostId !== userId) {
+      return res.status(403).json({ error: 'Only the host can generate QR pass' });
+    }
+
+    // Generate unique token
+    const qrToken = uuidv4();
+    const qrValidUntil = new Date(visitor.expectedDate);
+    qrValidUntil.setHours(23, 59, 59, 999); // End of expected date
+
+    // Create QR payload
+    const qrPayload = JSON.stringify({
+      t: qrToken,
+      v: visitorId,
+      s: id,
+      h: visitor.hostId,
+      f: visitor.flatNumber,
+      n: visitor.visitorName,
+      p: visitor.purpose,
+      exp: qrValidUntil.toISOString()
+    });
+
+    // Generate QR code as base64 PNG
+    const qrCode = await QRCode.toDataURL(qrPayload, {
+      width: 300,
+      margin: 2,
+      color: { dark: '#1a1a2e', light: '#ffffff' }
+    });
+
+    // Save to visitor
+    visitor.qrToken = qrToken;
+    visitor.qrCode = qrCode;
+    visitor.qrValidUntil = qrValidUntil;
+    visitor.status = 'approved';
+    await visitor.save();
+
+    res.json({
+      success: true,
+      visitor,
+      qrPass: {
+        qrCode,
+        qrToken,
+        validUntil: qrValidUntil,
+        visitorName: visitor.visitorName,
+        flatNumber: visitor.flatNumber,
+        purpose: visitor.purpose
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/societies/:id/visitors/:visitorId/qr-pass
+// Get the QR pass image for display
+router.get('/:id/visitors/:visitorId/qr-pass', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id, visitorId } = req.params;
+
+    const visitor = await Visitor.findById(visitorId);
+    if (!visitor || visitor.societyId !== id) {
+      return res.status(404).json({ error: 'Visitor not found' });
+    }
+
+    if (!visitor.qrCode) {
+      return res.status(404).json({ error: 'QR pass not generated yet' });
+    }
+
+    // Return QR image as data URL (base64)
+    res.json({
+      success: true,
+      qrPass: {
+        qrCode: visitor.qrCode,
+        qrToken: visitor.qrToken,
+        validUntil: visitor.qrValidUntil,
+        visitorName: visitor.visitorName,
+        flatNumber: visitor.flatNumber,
+        purpose: visitor.purpose,
+        status: visitor.status
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/societies/:id/visitors/verify-qr
+// Guard scans QR code - verifies and checks in visitor
+router.post('/:id/visitors/verify-qr', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { qrToken } = req.body;
+    const guardId = getUserId(req);
+
+    if (!qrToken) {
+      return res.status(400).json({ error: 'QR token required' });
+    }
+
+    const visitor = await Visitor.findOne({ qrToken, societyId: id });
+    if (!visitor) {
+      return res.status(404).json({
+        verified: false,
+        error: 'Invalid QR code'
+      });
+    }
+
+    // Check expiry
+    if (visitor.qrValidUntil && new Date() > visitor.qrValidUntil) {
+      return res.json({
+        verified: false,
+        error: 'QR pass has expired',
+        visitorName: visitor.visitorName
+      });
+    }
+
+    // Check if already used
+    if (visitor.qrVerifiedAt) {
+      return res.json({
+        verified: false,
+        error: 'QR code already used',
+        visitorName: visitor.visitorName,
+        usedAt: visitor.qrVerifiedAt
+      });
+    }
+
+    // Mark as verified
+    visitor.qrVerifiedAt = new Date();
+    visitor.qrVerifiedBy = guardId;
+    visitor.status = 'arrived';
+    visitor.checkInTime = new Date();
+    await visitor.save();
+
+    // Get society and host details
+    const society = await Society.findById(id);
+    const host = await SocietyMember.findOne({ societyId: id, userId: visitor.hostId });
+
+    res.json({
+      verified: true,
+      visitor: {
+        name: visitor.visitorName,
+        phone: visitor.visitorPhone,
+        purpose: visitor.purpose,
+        flatNumber: visitor.flatNumber,
+        hostName: host?.name || 'Unknown',
+        expectedTime: visitor.expectedTime,
+        checkInTime: visitor.checkInTime,
+        gateNumber: visitor.gateNumber
+      },
+      society: {
+        name: society?.name,
+        address: society?.address
+      },
+      message: `Welcome! ${visitor.visitorName} heading to Flat ${visitor.flatNumber}`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/societies/:id/visitors/pending
+// List pending visitor approvals for resident
+router.get('/:id/visitors/pending', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = getUserId(req);
+
+    const visitors = await Visitor.find({
+      societyId: id,
+      hostId: userId,
+      status: 'pending'
+    }).sort({ expectedDate: -1 });
+
+    res.json({ success: true, visitors });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/societies/:id/visitors/my-visits
+// List all visitors for the current user (host view)
+router.get('/:id/visitors/my-visits', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = getUserId(req);
+
+    const visitors = await Visitor.find({
+      societyId: id,
+      hostId: userId
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, visitors });
   } catch (error) {
     next(error);
   }

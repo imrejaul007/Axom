@@ -1,4 +1,9 @@
-import logger from './utils/logger';
+const logger = {
+  info: (msg: string, ...args: any[]) => console.log(`[feedService] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[feedService] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => console.warn(`[feedService] ${msg}`, ...args),
+  debug: (msg: string, ...args: any[]) => console.log(`[feedService] ${msg}`, ...args),
+};
 
 import { Post, IPost, PostType } from '../models/Post.js';
 import mongoose from 'mongoose';

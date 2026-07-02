@@ -43,7 +43,7 @@ const startServer = async () => {
     console.log('Connected to MongoDB');
 
     app.listen(PORT, () => {
-      logger.info(Ask Buzz Service running on port ${PORT}`);
+      console.log(`BuzzLocal Ask Service running on port ${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

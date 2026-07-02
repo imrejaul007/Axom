@@ -79,16 +79,11 @@ class Logger {
    * Log startup banner with ASCII art
    */
   startup(port: number, features?: string[]): void {
-    const featureList = features ? features.map(f => `  • ${f}`).join('\n') : '';
+    const featureList = features ? features.map(f => `  - ${f}`).join('\n') : '';
     this.info(`Service started on port ${port}`);
-    logger.info(
-╔═══════════════════════════════════════════════════════════════╗
-║       ${this.service.padEnd(52)}║
-╠═══════════════════════════════════════════════════════════════╣
-║  Port: ${String(port).padEnd(54)}║
-${featureList ? `╠═══════════════════════════════════════════════════════════════╣\n${featureList}` : ''}
-╚═══════════════════════════════════════════════════════════════╝
-    `);
+    if (featureList) {
+      console.log(`[${this.service}] Features:\n${featureList}`);
+    }
   }
 
   child(childService: string): Logger {

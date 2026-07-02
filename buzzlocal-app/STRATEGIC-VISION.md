@@ -1,7 +1,7 @@
 # BuzzLocal City OS - Strategic Vision
 
-**Last Updated:** May 19, 2026
-**Version:** 1.0.0
+**Last Updated:** 2026-06-22
+**Version:** 1.0.1
 
 ---
 
@@ -343,3 +343,23 @@ This is the foundation.
 **Phase:** Development
 **Launch Target:** TBD
 **Positioning:** Consumer Urban Infrastructure Platform
+
+---
+
+## Status Update (2026-06-22)
+
+This strategic vision is still considered the **current north star** for BuzzLocal positioning. No strategic shifts have been made since 2026-05-19. Specifically:
+
+- The 8-layer differentiation (Community / Safety / Commerce / AI / Trust / Society / Density / Civic) is still the core claim
+- "Digital Twin of the City" remains the long-term vision
+- Revenue streams and success metric targets in §"Revenue Streams" and §"Success Metrics" are unchanged
+- No new personas added since original (Food Scout, Startup Insider, etc. still planned, not implemented)
+
+### What changed since May 19
+- The mobile app code has grown: 30+ screen files under `app/` (vs the 18 referenced in AUDIT.md)
+- New areas visible in code: `corpperks/`, `creators/`, `delivery/`, `movement/`, `offers/`, `onboarding/`, `rides/`, `stayown/`, `analytics/`, `kiosks.tsx`
+- These additions are consistent with the strategic vision (commerce, civic integration, movement analytics) but pre-date dedicated strategy docs
+
+### Known gap
+- None of the 27 backend services listed in SOT.md are **verified as running** as of 2026-06-22
+- "Launch Target: TBD" remains accurate

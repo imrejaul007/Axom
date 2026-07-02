@@ -169,7 +169,7 @@ export class ResponseSynthesizer {
       ],
       general: [
         'Trending near me',
-        'What's popular',
+        "What's popular",
         'Events today',
         'Ask about safety'
       ]

@@ -112,6 +112,12 @@ export interface IVisitor extends Document {
   checkOutTime?: Date;
   gateNumber?: string;
   notes?: string;
+  // QR Pass Fields
+  qrCode?: string;          // Base64 PNG image of QR code
+  qrToken?: string;          // Unique token for verification
+  qrValidUntil?: Date;       // Expiry time (default: end of expectedDate)
+  qrVerifiedAt?: Date;       // When guard scanned it
+  qrVerifiedBy?: string;     // Guard/security guard ID
   createdAt: Date;
 }
 
@@ -257,7 +263,13 @@ const visitorSchema = new Schema({
   checkInTime: Date,
   checkOutTime: Date,
   gateNumber: String,
-  notes: String
+  notes: String,
+  // QR Pass Fields
+  qrCode: String,           // Base64 PNG image
+  qrToken: { type: String, index: true, unique: true },  // Unique token for verification
+  qrValidUntil: Date,       // Expiry time
+  qrVerifiedAt: Date,        // When guard scanned it
+  qrVerifiedBy: String      // Guard ID
 }, { timestamps: true });
 
 const classifiedSchema = new Schema({

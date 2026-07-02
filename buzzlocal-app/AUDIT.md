@@ -1,7 +1,38 @@
 # BuzzLocal - Complete Audit
 
-**Date:** May 14, 2026
-**Status:** REVIEWED
+**Date:** May 14, 2026 (historical snapshot)
+**Reaffirmed:** 2026-06-22 (scope note added)
+**Status:** SUPERSEDED — see note below
+
+---
+
+## Reaffirmation Note (2026-06-22)
+
+This audit was performed on May 14, 2026, when BuzzLocal was still a hyperlocal social + discovery app with **18 screens and 9 backend services**. Since then, the scope has been redefined as the **City OS** (see [SPEC.md](SPEC.md) and [CITY-OS-SPEC.md](CITY-OS-SPEC.md)).
+
+### Why this file is preserved
+
+This file is kept as a **historical snapshot** of BuzzLocal's V1 (social-focused) scope. It is NOT the current state of the app.
+
+### What is current (2026-06-22)
+
+- **App screens:** 30+ screen files under `app/`, organized under the City OS 4-layer model (Discover / Ask / Society / REZ Safe) plus new areas: `ask/`, `safe/`, `crisis/`, `marketplace/`, `services/`, `society/`, `corpperks/`, `creators/`, `delivery/`, `movement/`, `offers/`, `onboarding/`, `rides/`, `stayown/`, `analytics/`, `kiosks.tsx`
+- **Backend services:** 27 service directories under `buzzlocal-services/` (see [SOT.md](../buzzlocal-services/SOT.md) for the current registry, including the 5 services missing from the SOT's own table)
+- **Status of services:** Documented as running (✅ in SOT.md) but **not verified live** as of 2026-06-22
+
+### Architecture drift since this audit
+
+| Area | May 14, 2026 audit | Current (2026-06-22) |
+|------|-------------------|----------------------|
+| Positioning | Hyperlocal social + discovery | City OS / Urban Intelligence |
+| Screens | 18 | 30+ |
+| Backend services | 9 | 27 |
+| Core pillars | Feed, Vibe Map, Events, Communities, Wallet | Discover + Ask Buzz + Society OS + REZ Safe |
+| AI features | AI cards in feed | AI cards + Ask Buzz + Vibe Map predictions + Trust scoring |
+
+### Recommendation
+
+For current scope, read [SPEC.md](SPEC.md) and [CITY-OS-SPEC.md](CITY-OS-SPEC.md) first. Treat this AUDIT.md as V1 history only.
 
 ---
 
