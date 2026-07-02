@@ -1,12 +1,72 @@
 # BuzzLocal Backend Services
 
-**Complete backend for the BuzzLocal hyperlocal social platform**
+**Complete backend for BuzzLocal - Life OS for local communities.**
 
 ---
 
-## Overview
+## Services (10 microservices)
 
-BuzzLocal backend consists of 9 microservices that power the mobile app:
+| Port | Service | Description |
+|------|---------|-------------|
+| 4019 | SocietyOS | MyGate killer - visitor management, QR passes |
+| 4017 | SafetyOS | Alerts, SOS, area safety |
+| 4015 | Ask Service | AI-powered Q&A |
+| 4018 | Agency Service | BBMP, metro, weather alerts |
+| 4016 | Trust Service | Trust scoring |
+| 4004 | Community | Feeds, groups |
+| 4000 | Feed | Posts |
+| 4020 | HousingOS | Rentals, PGs, flatmates |
+| 4021 | PropertyOS | Landlord dashboard |
+| 4022 | RentFinanceOS | Zero deposit, credit score |
+
+---
+
+## Quick Start
+
+```bash
+# Start all services
+./scripts/start-buzzlocal.sh
+
+# Or individually
+cd buzzlocal-society-service && npm start
+```
+
+## Docker
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## API Examples
+
+### SocietyOS - Visitor Management
+
+```bash
+# Create society
+curl -X POST http://localhost:4019/api/societies \
+  -H "x-user-id: user123" \
+  -d '{"name":"Test Society","type":"apartment",...}'
+
+# Add visitor
+curl -X POST http://localhost:4019/api/societies/:id/visitors \
+  -H "x-user-id: user123" \
+  -d '{"visitorName":"John","purpose":"family","expectedDate":"2026-07-03"}'
+
+# Generate QR pass
+curl -X POST http://localhost:4019/api/societies/:id/visitors/:vid/generate-qr
+
+# Guard verifies QR
+curl -X POST http://localhost:4019/api/societies/:id/visitors/verify-qr \
+  -d '{"qrToken":"<token>"}'
+```
+
+---
+
+## Architecture
+
+BuzzLocal backend consists of 10 microservices that power the mobile app:
 
 | Service | Port | Description |
 |---------|------|-------------|
