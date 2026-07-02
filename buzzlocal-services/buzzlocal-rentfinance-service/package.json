@@ -1,0 +1,26 @@
+{
+  "name": "buzzlocal-rentfinance-service",
+  "version": "1.0.0",
+  "description": "RentFinanceOS - Zero deposit, rent credit score, deposit guarantees",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mongoose": "^8.8.0",
+    "tsx": "^4.19.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.9.0",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.6.3"
+  }
+}
