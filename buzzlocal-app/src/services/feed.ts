@@ -4,8 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 import { Post, FeedItem, PaginatedResponse } from '@/types';
 
 // Service URLs
-const FEED_URL = process.env.EXPO_PUBLIC_FEED_URL || 'https://buzzlocal-feed.onrender.com';
-const MIND_URL = process.env.EXPO_PUBLIC_MIND_URL || 'https://rez-mind.onrender.com';
+const FEED_URL = process.env.EXPO_PUBLIC_FEED_SERVICE_URL || 'http://localhost:4000';
+const MIND_URL = process.env.EXPO_PUBLIC_MIND_URL || 'http://localhost:4001';
 
 // API instance
 const api = axios.create({
